@@ -194,7 +194,7 @@ def table_effect_size(out):
     S = SU.effect_size()
     L = [r'\begin{tabular}{rcccc}', r'\toprule',
          r'& \multicolumn{2}{c}{One covariate} & \multicolumn{2}{c}{Two covariates} \\', r'\cmidrule(lr){2-3}\cmidrule(lr){4-5}',
-         r'$\delta$ & overshoot$/n$ & coverage & overshoot$/n$ & coverage \\', r'\midrule']
+         r'$\delta$ & overshoot & coverage & overshoot & coverage \\', r'\midrule']
     rows = []
     for d in ('0.1', '0.2', '0.3', '0.5', '1', '2'):
         a, b = S[f'd1/delta{d}'], S[f'd2/delta{d}']
