@@ -1,0 +1,16 @@
+{
+ "dataset": "noy",
+ "robustness": false,
+ "stability": true,
+ "two_covariates": false,
+ "environment": {
+  "python": "3.11.2",
+  "numpy": "2.0.2",
+  "scipy": "1.13.1",
+  "numba": "0.67.0",
+  "numba_threads": 8,
+  "cpu": "AMD EPYC 7J13 64-Core Processor",
+  "omp_threads": "1",
+  "openblas_threads": "1"
+ }
+}

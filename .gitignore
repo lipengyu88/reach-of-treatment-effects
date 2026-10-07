@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+.venv/
+venv/
+*.egg-info/
+
+# data from the providers (see data/README.md) and unit-level files derived from them
+data/raw/
+results/real_data/*/local/
+
+# outputs of smoke tests and partial runs
+results/smoke/
+results/**/records/
+results/**/*.ckpt.json

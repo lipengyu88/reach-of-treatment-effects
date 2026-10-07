@@ -1,0 +1,15 @@
+{
+ "experiment": "shared_vs_conditional",
+ "M": 500,
+ "alpha": 0.05,
+ "tasks": 400,
+ "seeds": "designs.seed_plan(rep, size_index): data 1+rep, assignment 10001+rep, Monte Carlo 20001+1000 rep, calibration 20260619 + 10^6 size_index + 600000 + rep; conditional tests 20260929 + 1000 rep",
+ "command": "python runners/run_supplementary.py --experiment shared_vs_conditional",
+ "computed_with": {
+  "python": "3.11.2",
+  "numpy": "2.0.2",
+  "scipy": "1.13.1",
+  "numba": "0.67.0"
+ },
+ "check": "repetitions 0-9 of every cell were rerun with this repository and reproduced exactly"
+}

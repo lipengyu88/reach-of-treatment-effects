@@ -1,0 +1,35 @@
+{
+ "experiment": "calibration",
+ "design": "two_regions",
+ "dims": [
+  1,
+  2
+ ],
+ "sizes": [
+  200,
+  400,
+  600,
+  800,
+  1000,
+  4000,
+  7000,
+  10000,
+  13000
+ ],
+ "repetitions": 200,
+ "M": 500,
+ "alpha": 0.05,
+ "grid": "5% of n: step max(1, round(0.05 n))",
+ "scores": [
+  "raw",
+  "adjusted (independent calibration sample)"
+ ],
+ "seeds": "designs.seed_plan(rep, size_index): data 1+rep, assignment 10001+rep, Monte Carlo 20001+1000 rep, calibration 20260619 + 10^6 size_index + 600000 + rep",
+ "command": "python runners/run_calibration.py --design two_regions",
+ "computed_with": {
+  "python": "3.11.2",
+  "numpy": "2.0.2",
+  "scipy": "1.13.1"
+ },
+ "check": "repetitions 0-9 of every cell were rerun with this repository and reproduced exactly"
+}

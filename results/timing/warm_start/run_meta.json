@@ -1,0 +1,23 @@
+{
+ "experiment": "warm_start",
+ "alpha": 0.05,
+ "sizes": [
+  5000,
+  20000
+ ],
+ "M": [
+  500,
+  2000,
+  10000,
+  50000
+ ],
+ "datasets": "repetitions 0-9",
+ "machine": "AMD EPYC 7J13, 24 threads",
+ "command": "python runners/run_timing.py --experiment warm_start",
+ "computed_with": {
+  "python": "3.11.2",
+  "numpy": "2.0.2",
+  "scipy": "1.13.1",
+  "numba": "0.67.0"
+ }
+}

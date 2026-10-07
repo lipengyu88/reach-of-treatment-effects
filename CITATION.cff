@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the paper below."
+title: "The reach of treatment effects: randomization inference for zero-effect regions"
+type: software
+authors:
+  - family-names: "Li"
+    given-names: "Pengyu"
+  - family-names: "Zhang"
+    given-names: "Yao"
+license: MIT
+repository-code: "https://github.com/lipengyu88/reach-of-treatment-effects"
+preferred-citation:
+  type: article
+  title: "The reach of treatment effects: randomization inference for zero-effect regions"
+  authors:
+    - family-names: "Li"
+      given-names: "Pengyu"
+    - family-names: "Zhang"
+      given-names: "Yao"
+  year: 2026

@@ -1,0 +1,22 @@
+{
+ "experiment": "methods",
+ "alpha": 0.05,
+ "M": 500,
+ "design": "designs.generate(zero='circle', size_index=0), raw outcome; data repetition r uses seed_plan(r, 0)",
+ "sizes": [
+  1000,
+  5000,
+  10000,
+  15000,
+  20000
+ ],
+ "datasets": "shared methods: repetitions 0-9; conditional method: repetition 0 (three runs at n = 1000)",
+ "machines": "one dimension: AMD EPYC 7J13, 24 threads; two dimensions: Intel Xeon Platinum 8358, 50 threads",
+ "command": "python runners/run_timing.py --experiment methods --dimension D --n N --method METHOD",
+ "computed_with": {
+  "python": "3.11.2",
+  "numpy": "2.0.2",
+  "scipy": "1.13.1",
+  "numba": "0.67.0"
+ }
+}

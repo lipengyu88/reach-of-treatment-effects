@@ -1,0 +1,7 @@
+# Python 3.10 or later. Minimum versions; requirements-frozen.txt lists the versions used for the paper.
+numpy>=1.24
+scipy>=1.10
+numba>=0.58
+pandas>=2.0
+matplotlib>=3.7
+pytest>=7
