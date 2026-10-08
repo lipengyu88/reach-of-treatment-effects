@@ -13,7 +13,8 @@ RESULTS = REPO / 'results'
 SIZES = [200, 400, 600, 800, 1000, 4000, 7000, 10000, 13000]
 NS_RATE = [500, 1000, 2000, 4000, 8000, 16000]
 SCEN = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
-# theory of Section 5: overshoot of order (log n / n)^{1/(2 gamma)}, gamma = nu + beta
+# theory of Section 5: overshoot of order (log n / n)^{1/(2 gamma)}, gamma = nu + beta, with (nu, beta) for each
+# design; nu = 3/2 for the strip is the value suggested by the boundary-cap calculation of Appendix C
 THEORY = {'centre10-const': (1.0, 0.0), 'centre10-grad1': (1.0, 1.0), 'strip20-const': (1.5, 0.0)}
 RATE_CELLS = [(1, 'centre10-const'), (1, 'centre10-grad1'), (2, 'centre10-const'), (2, 'centre10-grad1'),
               (2, 'strip20-const')]
