@@ -92,7 +92,7 @@ def table_two_regions(out):
 
 
 def table_rates(out):
-    """Section 6.3 (arXiv Table 5): theoretical and fitted slopes."""
+    """Appendix H.3 (arXiv Table 5): theoretical and fitted slopes."""
     S = SU.rates()
     names = {'d1/centre10-const': ('one', 'central, constant'), 'd1/centre10-grad1': ('one', 'central, grows with distance'),
              'd2/centre10-const': ('two', 'central, constant'), 'd2/centre10-grad1': ('two', 'central, grows with distance'),

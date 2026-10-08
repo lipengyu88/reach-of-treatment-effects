@@ -1,4 +1,4 @@
-"""Searched grids and the inversion of a p-value path on a grid (Sections 2.3 and 6.1, Appendix E.6).
+"""Searched grids and the inversion of a p-value path on a grid (Section 6.1 and Appendix E.6).
 
 On a pre-specified grid the bound is the largest searched size not rejected by the tail envelope
 P_r^up = max_{t >= r} P_t; the next searched size r* is rejected, and r* - 1 is an upper confidence bound
