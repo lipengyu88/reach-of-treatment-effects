@@ -34,6 +34,36 @@ def hist_pieces(W, mask, edges):
     return pieces
 
 
+FILL_SHARE = 0.75
+
+
+def fill_columns(pieces, share=FILL_SHARE):
+    """Draw a split column as one covered piece when at least `share` of its units are covered.
+
+    `pieces` are rows (left, width, height, covered) as returned by hist_pieces: the pieces of a column are
+    adjacent, have the column's count as height and together span one bin. Columns with a smaller covered
+    share, and columns that are not split, are returned unchanged."""
+    rows = sorted(tuple(r) for r in pieces)
+    if not rows:
+        return rows
+    width = max(r[1] for r in rows)          # a column that is not split spans one whole bin
+    out, i = [], 0
+    while i < len(rows):
+        group, span = [rows[i]], rows[i][1]
+        while span < width * (1 - 1e-9) and i + len(group) < len(rows):
+            group.append(rows[i + len(group)])
+            span += group[-1][1]
+        if abs(span - width) > 1e-6 * width or len({r[2] for r in group}) != 1:
+            raise ValueError('pieces do not group into columns of equal width')
+        covered = sum(r[1] for r in group if r[3])
+        if len(group) > 1 and covered >= share * span:
+            out.append((group[0][0], span, group[0][2], True))
+        else:
+            out.extend(group)
+        i += len(group)
+    return out
+
+
 def mask_runs(mask):
     """Maximal runs of covered units, as (start, end) positions (end exclusive) in the order of the test."""
     m = np.asarray(mask, bool).astype(np.int8)

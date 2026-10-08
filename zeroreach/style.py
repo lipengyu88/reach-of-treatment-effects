@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from zeroreach.display import FILL_SHARE, fill_columns
+
 BLUE, ORANGE, AQUA, YELLOW = '#2a78d6', '#eb6834', '#1baf7a', '#eda100'
 INK, INK2, GRID, NEUTRAL = '#0b0b0b', '#52514e', '#e6e5e1', '#c9c8c2'
 RC = {
@@ -29,8 +31,11 @@ def bound_lines(bound, n, cert=None, sym=SYM_L):
     return lines
 
 
-def draw_pieces(ax, pieces):
-    """Draw histogram pieces (left, width, height, covered) from zeroreach.display.hist_pieces."""
+def draw_pieces(ax, pieces, fill_share=FILL_SHARE):
+    """Draw histogram pieces (left, width, height, covered) from zeroreach.display.hist_pieces. A column in
+    which at least `fill_share` of the units are covered is drawn entirely blue (display.fill_columns)."""
+    if fill_share is not None:
+        pieces = fill_columns(pieces, fill_share)
     x, w, h, blue = (np.asarray(v) for v in zip(*pieces))
     blue = blue.astype(bool)
     for sel, colour in ((~blue, NEUTRAL), (blue, BLUE)):
