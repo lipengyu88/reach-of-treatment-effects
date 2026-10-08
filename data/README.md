@@ -1,6 +1,6 @@
 # Data
 
-The three experiments of Sections 6.7–6.9 use public data that are **not** redistributed here. Put the
+The three experiments of Sections 1, 6.7 and 6.8 use public data that are **not** redistributed here. Put the
 files under `data/raw/` as below; `runners/run_real_data.py` reads them from there (or from `--data-dir`).
 Everything stored under `results/real_data/` is aggregated (bounds, p-value paths, counts behind the
 displays); no unit-level value is part of this repository.

@@ -23,7 +23,7 @@ warm start is faster under a monotonicity assumption.
 │   ├── grids.py                searched grids and the inversion with the tail envelope
 │   ├── randomization.py        complete randomization, randomization within strata or cells
 │   ├── designs.py              simulation designs of Section 6 and Appendix H
-│   ├── realdata.py             readers for the three experiments of Sections 6.7-6.9
+│   ├── realdata.py             readers for the three experiments of Sections 1, 6.7 and 6.8
 │   ├── display.py              aggregates behind the region displays
 │   ├── summaries.py, style.py  summaries of results/ and figure style
 │   └── utils.py
@@ -31,7 +31,7 @@ warm start is faster under a monotonicity assumption.
 │   ├── run_calibration.py      Section 6.2, Section 6.5 and Appendix H.2
 │   ├── run_supplementary.py    Section 6.3 and Appendix H
 │   ├── run_timing.py           Section 6.4 and Appendix H.4
-│   └── run_real_data.py        Sections 6.7-6.9 and Figure 1
+│   └── run_real_data.py        Sections 1, 6.7 and 6.8
 ├── results/                    outputs of the runners (included)
 ├── figures/                    the figures of the paper (included)
 ├── tables/                     the tables of the paper, as LaTeX and CSV (included)
@@ -100,7 +100,7 @@ repository alone; *needs data* that it needs the public data of `data/README.md`
 
 | arXiv | Biometrika | Content | Files | Command | Status |
 |---|---|---|---|---|---|
-| Fig. 1 | Fig. 1 | Bounds in two applications | `fig_intro_realdata_bounds.pdf` | `run_real_data.py --dataset ggl`, `--dataset actg` | needs data (redrawn from results/) |
+| Fig. 1 | Fig. 1 | Noy-Zhang writing experiment | `fig_real_noy_regions.pdf` | `run_real_data.py --dataset noy --stability` | needs data (redrawn from results/) |
 | Table 1 | Table 1 | Computational costs | — | analytical | — |
 | Fig. 2 | Fig. 2 | Calibration, one covariate | `fig_d1_calibration_{ratio,coverage}.pdf` | `run_calibration.py --design centre10` | covered |
 | Fig. 3 | Fig. S5 | Calibration, two covariates | `fig_d2_calibration_{ratio,coverage}.pdf` | same | covered |
@@ -110,15 +110,14 @@ repository alone; *needs data* that it needs the public data of `data/README.md`
 | Fig. 8 | Fig. 3 | Gerber-Green-Larimer | `fig_real_ggl_regions.pdf` | `run_real_data.py --dataset ggl --robustness` | needs data (redrawn from results/) |
 | Fig. 9, Table 2 | Fig. S10, Table S1 | ACTG 175 | `fig_real_actg175_regions.pdf`, `actg_twoarm.tex` | `run_real_data.py --dataset actg --stability --two-covariates` | needs data (redrawn from results/) |
 | Fig. 10 | Fig. S11 | ACTG 175, two covariates | `fig_real_actg175_2d_regions.pdf` | same | needs data |
-| Fig. 11 | Fig. S12 | Noy-Zhang writing experiment | `fig_real_noy_regions.pdf` | `run_real_data.py --dataset noy --stability` | needs data (redrawn from results/) |
-| Fig. 12 | Fig. S1 | Boundary geometry (schematic) | `knn_boundary_cap.pdf` | drawn by the authors, not generated from data | — |
-| Fig. 13, Table 3 | Fig. S2, Table S2 | Validity stress tests | `fig_coverage_stress.pdf`, `stress.tex` | `run_supplementary.py --experiment stress` | covered |
+| Fig. 11 | Fig. S1 | Boundary geometry (schematic) | `knn_boundary_cap.pdf` | drawn by the authors, not generated from data | — |
+| Fig. 12, Table 3 | Fig. S2, Table S2 | Validity stress tests | `fig_coverage_stress.pdf`, `stress.tex` | `run_supplementary.py --experiment stress` | covered |
 | Table 4 | Table S3 | Two zero-effect regions | `two_regions.tex` | `run_calibration.py --design two_regions` | covered |
-| Fig. 14, Table 6 | Fig. S3, Table S5 | Warm start and M | `fig_warm_start_vs_M.pdf`, `warm_start.tex` | `run_timing.py --experiment warm_start` | covered (machine dependent) |
+| Fig. 13, Table 6 | Fig. S3, Table S5 | Warm start and M | `fig_warm_start_vs_M.pdf`, `warm_start.tex` | `run_timing.py --experiment warm_start` | covered (machine dependent) |
 | Table 7 | Table S6 | Dispersed and cancelling effects | `dispersed.tex` | `run_supplementary.py --experiment dispersed` | covered |
 | Table 8 | Table S7 | Two-sided statistic | `two_sided.tex` | `run_supplementary.py --experiment two_sided` | covered |
 | Table 9 | Table S8 | Shared and conditional tests | `shared_vs_conditional.tex` | `run_supplementary.py --experiment shared_vs_conditional` | covered |
-| Fig. 15, Table 10 | Fig. S4, Table S9 | Effect size | `fig_effect_size.pdf`, `effect_size.tex` | `run_supplementary.py --experiment effect_size` | covered |
+| Fig. 14, Table 10 | Fig. S4, Table S9 | Effect size | `fig_effect_size.pdf`, `effect_size.tex` | `run_supplementary.py --experiment effect_size` | covered |
 
 The real-data figures are redrawn from the aggregates in `results/real_data/` (counts behind the
 histograms, bounds, p-value paths), so `plot_figures.py` needs no data; recomputing those aggregates
@@ -152,7 +151,7 @@ python runners/run_timing.py --experiment methods --dimension 1 --n 1000 --metho
 python runners/run_timing.py --experiment warm_start
 python runners/run_timing.py --collect --experiment methods             # collect the records into details.csv
 
-# Sections 6.7-6.9 (data in data/raw/, see data/README.md)
+# Sections 1, 6.7 and 6.8 (data in data/raw/, see data/README.md)
 python runners/run_real_data.py --dataset ggl --robustness              # a few minutes with 32 threads
 python runners/run_real_data.py --dataset actg --stability --two-covariates
 python runners/run_real_data.py --dataset noy --stability

@@ -1,4 +1,4 @@
-"""Readers for the three experiments of Sections 6.7-6.9 and the exact count kernel used for the
+"""Readers for the three experiments of Sections 1, 6.7 and 6.8 and the exact count kernel used for the
 Gerber-Green-Larimer analysis. The data are not part of this repository; see data/README.md.
 
   load_ggl(path)     household-level Neighbors versus Control data from the individual file of ISPS D001;
@@ -175,7 +175,7 @@ def _grade_means(grading, task_dates):
 
 
 def load_noy(raw_dir, expected_n=453):
-    """Participants of the linear and convex incentive groups (Section 6.9), one cohort per outcome.
+    """Participants of the linear and convex incentive groups (Section 1 and Appendix F.3), one cohort per outcome.
 
     W is the exact mean grade of the first task; 'quality' is the exact mean grade of the second task and
     'time' minus the time spent on the second task. Participants are ordered by (W, participant id).

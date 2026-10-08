@@ -1,7 +1,7 @@
 """Draw every figure of the paper from the files in results/ (a few minutes; no experiment is rerun).
 
 usage: python plot_figures.py [--out figures] [--only NAME ...]
-Figure 12 (Appendix D) is a schematic drawn by the authors; it is not generated from data and is kept
+Figure 11 (Appendix C) is a schematic drawn by the authors; it is not generated from data and is kept
 as figures/knn_boundary_cap.pdf. Figure 10 shows unit-level ACTG 175 data: it is redrawn only when
 results/real_data/actg/local/ exists (python runners/run_real_data.py --dataset actg --two-covariates).
 """
@@ -19,7 +19,7 @@ import matplotlib                                      # noqa: E402
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt                        # noqa: E402
 from matplotlib.lines import Line2D                    # noqa: E402
-from matplotlib.patches import Circle, Patch, Rectangle  # noqa: E402
+from matplotlib.patches import Circle, Patch  # noqa: E402
 
 from zeroreach import summaries as SU                  # noqa: E402
 from zeroreach.style import (AQUA, BLUE, GRID, INK, INK2, NEUTRAL, ORANGE, RC, SYM_K, YELLOW,  # noqa: E402
@@ -36,68 +36,6 @@ def pieces(path):
     import pandas as pd
     df = pd.read_csv(path)
     return list(zip(df.left, df.width, df.height, df.covered.astype(bool)))
-
-
-# ------------------------------------------------------------------------------------------------ Figure 1
-def fig_intro(out):
-    """Figure 1: bounds in the two applications and the ACTG 175 blocks that are not rejected."""
-    import pandas as pd
-    SLATE, EDGE, GOLD, GREY = '#6F7F8F', '#263238', '#E3B23C', '#DCDCDC'
-    GRID1, SPINE, DARK = '#D8DDE3', '#7D8790', '#263238'
-    ggl, actg = SU.real('ggl'), SU.real('actg')
-    n_actg = actg['n']
-    rows_a = [('GGL: household age', 100 * ggl['bound'] / ggl['n']),
-              ('ACTG 175: raw CD4', 100 * actg['outcomes']['raw']['bound'] / n_actg),
-              ('ACTG 175: adjusted CD4 change', 100 * actg['outcomes']['change']['bound'] / n_actg)]
-    rows_b = [('ACTG raw', 'raw'), ('ACTG adjusted', 'change')]
-    with plt.rc_context({'font.family': 'serif', 'font.serif': ['DejaVu Serif'], 'pdf.fonttype': 42}):
-        fig = plt.figure(figsize=(542.536 / 72, 335.295 / 72))
-
-        def style(ax, xlabel):
-            ax.set_xlim(0, 100)
-            ax.set_xticks([0, 20, 40, 60, 80, 100])
-            ax.set_xticklabels(['0', '20', '40', '60', '80', '100%'], fontsize=9)
-            ax.grid(axis='x', color=GRID1, lw=0.8)
-            ax.set_axisbelow(True)
-            for s in ('top', 'right', 'left'):
-                ax.spines[s].set_visible(False)
-            ax.spines['bottom'].set_color(SPINE)
-            ax.spines['bottom'].set_linewidth(1.0)
-            ax.tick_params(axis='x', colors=SPINE, labelcolor='black', length=4)
-            ax.tick_params(axis='y', length=0, pad=9, labelsize=10, labelcolor='black')
-            ax.set_xlabel(xlabel, fontsize=11)
-
-        ax = fig.add_axes([0.335, 0.564, 0.628, 0.379])
-        for i, (label, v) in enumerate(rows_a):
-            ax.barh(i, v, height=0.43, color=SLATE, edgecolor=EDGE, lw=0.7)
-            ax.text(v + 1.4, i, f'{v:.1f}%', va='center', ha='left', fontsize=9, color=DARK)
-        ax.set_yticks(range(len(rows_a)))
-        ax.set_yticklabels([r[0] for r in rows_a])
-        ax.set_ylim(len(rows_a) - 1 + 0.35, -0.35)
-        style(ax, 'Upper bound as a percent of the analysed sample')
-        fig.text(0.273, 0.968, '(a)', fontsize=10, ha='center', va='center')
-        ax = fig.add_axes([0.335, 0.110, 0.628, 0.239])
-        for i, (label, key) in enumerate(rows_b):
-            y0 = i - 0.32
-            ax.add_patch(Rectangle((0, y0), 100, 0.64, facecolor=GREY, edgecolor='none'))
-            runs = pd.read_csv(RES / 'real_data' / 'actg' / f'covered_runs_{key}.csv')
-            for s, e in zip(runs.start, runs.end):
-                ax.add_patch(Rectangle((100 * s / n_actg, y0), 100 * (e - s) / n_actg, 0.64,
-                                       facecolor=GOLD, edgecolor='white', lw=0.6))
-            yb, x0, x1 = i + 0.375, 1.0, 1.0 + 100 * actg['outcomes'][key]['bound'] / n_actg
-            ax.plot([x0, x1], [yb, yb], color=DARK, lw=1.2)
-            ax.plot([x0, x0], [yb - 0.05, yb + 0.05], color=DARK, lw=1.2)
-            ax.plot([x1, x1], [yb - 0.05, yb + 0.05], color=DARK, lw=1.2)
-        ax.set_yticks(range(len(rows_b)))
-        ax.set_yticklabels([r[0] for r in rows_b])
-        ax.set_ylim(len(rows_b) - 0.45, -0.45)
-        style(ax, 'Baseline-CD4 rank percentile')
-        ax.legend(handles=[Patch(facecolor=GOLD, label='non-rejected'), Patch(facecolor=GREY, label='rejected'),
-                           Line2D([], [], color=DARK, lw=1.2, label='bound length')],
-                  ncol=3, frameon=False, fontsize=9, loc='lower center', bbox_to_anchor=(0.5, 0.938))
-        fig.text(0.273, 0.362, '(b)', fontsize=10, ha='center', va='center')
-        fig.savefig(out / 'fig_intro_realdata_bounds.pdf')
-        plt.close(fig)
 
 
 # ------------------------------------------------------------------------------------------ Figures 2-3
@@ -280,9 +218,9 @@ def fig_regions(out):
         plt.close(fig)
 
 
-# ---------------------------------------------------------------------------------------- Figures 8-11
+# ---------------------------------------------------------------------------------------- Figures 1, 8-10
 def fig_real(out):
-    """Figures 8, 9 and 11 from the stored aggregates; Figure 10 only if unit-level files exist locally."""
+    """Figures 1, 8 and 9 from the stored aggregates; Figure 10 only if unit-level files exist locally."""
     base = RES / 'real_data'
     actg = SU.real('actg')
     n = actg['n']
@@ -360,14 +298,14 @@ def fig_real(out):
     plt.close(fig)
 
 
-# --------------------------------------------------------------------------------------- Figures 13-15
+# --------------------------------------------------------------------------------------- Figures 12-14
 SCEN_SHORT = {'S0': 'normal', 'S1': '$t_3$ errors', 'S2': 'heterosk.', 'S3': 'binary', 'S4': 'mixed sign',
               'S5': 'stratified'}
 N_STYLE = {200: (AQUA, 'o'), 1000: (BLUE, 's'), 4000: (ORANGE, '^')}
 
 
 def fig_stress(out):
-    """Figure 13: coverage and mean bound / n of the raw 5%-grid bound in six scenarios."""
+    """Figure 12: coverage and mean bound / n of the raw 5%-grid bound in six scenarios."""
     e2 = SU.stress()
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.9))
     x = np.arange(len(SU.SCEN))
@@ -403,7 +341,7 @@ def fig_stress(out):
 
 
 def fig_warm(out):
-    """Figure 14: bisection with and without the Gaussian warm start as M grows."""
+    """Figure 13: bisection with and without the Gaussian warm start as M grows."""
     e5 = SU.warm_start()
     Ms = [500, 2000, 10000, 50000]
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.8))
@@ -438,7 +376,7 @@ def fig_warm(out):
 
 
 def fig_effect_size(out):
-    """Figure 15: mean overshoot against the effect outside the zero-effect region."""
+    """Figure 14: mean overshoot against the effect outside the zero-effect region."""
     e9 = SU.effect_size()
     deltas = [0.1, 0.2, 0.3, 0.5, 1, 2]
     fig, ax = plt.subplots(1, 1, figsize=(3.6, 2.9))
@@ -462,7 +400,7 @@ def fig_effect_size(out):
     plt.close(fig)
 
 
-FIGURES = {'intro': fig_intro, 'calibration': fig_calibration, 'rates': fig_rates, 'timing': fig_timing,
+FIGURES = {'calibration': fig_calibration, 'rates': fig_rates, 'timing': fig_timing,
            'regions': fig_regions, 'real': fig_real, 'stress': fig_stress, 'warm': fig_warm,
            'effect_size': fig_effect_size}
 
@@ -476,11 +414,8 @@ def main():
     for name, f in FIGURES.items():
         if a.only and name not in a.only:
             continue
-        if name == 'intro':
+        with plt.rc_context(RC):
             f(a.out)
-        else:
-            with plt.rc_context(RC):
-                f(a.out)
         print('drawn:', name, flush=True)
 
 

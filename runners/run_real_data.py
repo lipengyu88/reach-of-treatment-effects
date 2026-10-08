@@ -1,4 +1,4 @@
-"""The three experiments of Sections 6.7-6.9 (and Figure 1).
+"""The three experiments of Sections 1, 6.7 and 6.8.
 
 ggl   Gerber-Green-Larimer social-pressure experiment: households of the Neighbors and Control groups ordered
       by the mean age of their members (ties by cell, then household), the recorded design (permutation
