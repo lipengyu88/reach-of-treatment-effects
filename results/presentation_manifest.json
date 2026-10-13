@@ -1,0 +1,421 @@
+{
+  "format": "compact-presentation-records-v1",
+  "inputs": {
+    "work/centering_comparison_20261013/results/calibration/centre10/details.csv": {
+      "sha256": "a386ace51f1492af0f6567c0cd524e043f07f631c4e0c89ed4dda097024aacb8",
+      "bytes": 669404815
+    },
+    "work/centering_comparison_20261013/results/calibration/centre10/run_meta.json": {
+      "sha256": "907d611373132d20381fc3fe14c5cfd8f8d49cc210cdb9aee9ad7a6449bd519b",
+      "bytes": 1409
+    },
+    "work/centering_comparison_20261013/results/calibration/centre10/display_d1_n7000_rep0.npz": {
+      "sha256": "83a29a2d0a439eb33d8e0e2f4ff91e0c389e0cdce358a3a431ebed3ef2835351",
+      "bytes": 65576
+    },
+    "work/centering_comparison_20261013/results/calibration/centre10/display_d2_n7000_rep0.npz": {
+      "sha256": "a61fb1d1c2ebbbf1334fe7675d683dbe2324a4bba90e0d1a187a8210deaa314e",
+      "bytes": 149742
+    },
+    "work/full_integer_20261013/results/calibration/two_regions/details.csv": {
+      "sha256": "ab2619cd393481430ee112bb18242fd1e8dc8e8c9013a20cc5d71c8dc106d62e",
+      "bytes": 886847396
+    },
+    "work/full_integer_20261013/results/calibration/two_regions/run_meta.json": {
+      "sha256": "a712e3eed0aaa20cd8f02aa5b0b27670fabbdcc9b6c2ad5799f0ce140eca5040",
+      "bytes": 1010
+    },
+    "work/full_integer_20261013/results/supplementary/stress/details.csv": {
+      "sha256": "0cae7092b38a25ba6b56beeec8654b0dad72147420cc8b6b01d73348c0bcb908",
+      "bytes": 5933482
+    },
+    "work/full_integer_20261013/results/supplementary/stress/run_meta.json": {
+      "sha256": "08219eab887051d3d90b595fed0665b8b233baea855f85a40749cfc28d0a77af",
+      "bytes": 751
+    },
+    "work/full_integer_20261013/results/supplementary/dispersed/details.csv": {
+      "sha256": "4d5900e9520f2da66fb6617c203999f6f222954859efcf6527b7a04ca740886b",
+      "bytes": 208794
+    },
+    "work/full_integer_20261013/results/supplementary/dispersed/run_meta.json": {
+      "sha256": "4dc3b1b9a5f9fd1d601c8bd3032de2a40f166f7fdad72a8ce39e9598aee084bf",
+      "bytes": 756
+    },
+    "work/full_integer_20261013/results/supplementary/two_sided/details.csv": {
+      "sha256": "7e29aaf92d279ebb05f586685f762b9b14bcb32defd9a40eb22e99dcd491a05e",
+      "bytes": 2394158
+    },
+    "work/full_integer_20261013/results/supplementary/two_sided/run_meta.json": {
+      "sha256": "933beb2b3a15054bd937abe3ebebdf59487a9e8cc2a5f170704c4d428a981762",
+      "bytes": 757
+    },
+    "work/full_integer_20261013/results/supplementary/shared_vs_conditional/details.csv": {
+      "sha256": "38e46666292436bf1482a9614a61d47bbfd151461f1e19a349a40683463fdf38",
+      "bytes": 66915416
+    },
+    "work/full_integer_20261013/results/supplementary/shared_vs_conditional/run_meta.json": {
+      "sha256": "9257d39f1b18650a3d809b15955603ea796acd78f3d6d258fb8e560e6c213335",
+      "bytes": 780
+    },
+    "work/full_integer_20261013/results/real_data/actg/summary.json": {
+      "sha256": "250c80b8a28a9ed6fbea294a95384a80af438d2082d8721424d1c38ef580aa95",
+      "bytes": 87496
+    },
+    "work/full_integer_20261013/results/real_data/actg/run_meta.json": {
+      "sha256": "7f764227e9866dac1e391f4e5a8f3418ac4244f6c9931164828a2a646f1674cb",
+      "bytes": 414
+    },
+    "work/full_integer_20261013/results/real_data/actg/display_pieces_change.csv": {
+      "sha256": "69bb787e8af4e61ea1a001de2098a69ee617d5803acddbd0083dc81f0e1f586b",
+      "bytes": 826
+    },
+    "work/full_integer_20261013/results/real_data/actg/display_pieces_raw.csv": {
+      "sha256": "6ebf674003929076bcf98fd084e23eecda0d848ee77764a00888a2616b1bc7dd",
+      "bytes": 901
+    },
+    "work/full_integer_20261013/results/real_data/actg/stability.csv": {
+      "sha256": "1958f12e992448b0b393df621d5b8619c94be628427704032997e7023673cb5d",
+      "bytes": 904
+    },
+    "work/full_integer_20261013/results/real_data/noy/summary.json": {
+      "sha256": "c41f937111f72c7c7f299b32f458a460105a8aad1cce58279fb3a64570efbd26",
+      "bytes": 31342
+    },
+    "work/full_integer_20261013/results/real_data/noy/run_meta.json": {
+      "sha256": "3a687d864ab7825455f81186d2aa7202f2e1b24051e1715c37a7e760f98ab3ff",
+      "bytes": 415
+    },
+    "work/full_integer_20261013/results/real_data/noy/display_pieces_quality.csv": {
+      "sha256": "94d3913ce1c91cc417d0406e6ace5cc8e8dc64a63a2622c5806b6fbe75a31ee0",
+      "bytes": 870
+    },
+    "work/full_integer_20261013/results/real_data/noy/display_pieces_time.csv": {
+      "sha256": "5858b3b7297b4b20882ff32294c1396f78dd5572f8ee9fb8c365f622db3c280a",
+      "bytes": 925
+    },
+    "work/full_integer_20261013/results/real_data/noy/stability.csv": {
+      "sha256": "547e2f86ca3220744b6b228c6d6ab7089397edf844c34bb355d1ff48b0aa8fb4",
+      "bytes": 889
+    },
+    "work/full_integer_20261013/results/real_data/ggl/summary.json": {
+      "sha256": "b1279c69b5718f22ad28852e04641fc4ec0ce838206c1e1af7e8b117ed666419",
+      "bytes": 3153
+    },
+    "work/full_integer_20261013/results/real_data/ggl/display_pieces.csv": {
+      "sha256": "caaf4cddb27f814a3d1ec0e038f3464ddb7cb409b5d626edb42da3f1f8ae24d5",
+      "bytes": 1803
+    },
+    "work/full_integer_20261013/results/real_data/ggl/robustness.csv": {
+      "sha256": "8ba311da04e61e11e24ca46c86e7c281d482ff5d66272d2afaba7dfd7b95db46",
+      "bytes": 1361
+    },
+    "work/full_integer_20261013/results/real_data/actg/two_covariates.json": {
+      "sha256": "b8fd12a9ef2063588b3c72e2e01784f78ab4669bcac125df44ae361df1bc162d",
+      "bytes": 73833
+    }
+  },
+  "outputs": {
+    "results/centering_comparison/full_integer/calibration/centre10/details.csv": {
+      "sha256": "154d25385ce6e5118b42e80c8e461adcdbc798c7d40fa4bd63928fa4157b92ce",
+      "bytes": 1648258,
+      "rows": 3600,
+      "source": "work/centering_comparison_20261013/results/calibration/centre10/details.csv",
+      "transformation": "retain scalar run/seed/configuration/bound/coverage fields; omit P paths and machine metadata; normalize text line endings to LF"
+    },
+    "results/centering_comparison/full_integer/calibration/centre10/run_meta.json": {
+      "sha256": "72ca3872cc29b95a024f37d10ed26a680bf7f01cc498306aa498c7bc235baac7",
+      "bytes": 1664,
+      "source": "work/centering_comparison_20261013/results/calibration/centre10/run_meta.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/centering_comparison/full_integer/calibration/centre10/display_d1_n7000_rep0.npz": {
+      "sha256": "83a29a2d0a439eb33d8e0e2f4ff91e0c389e0cdce358a3a431ebed3ef2835351",
+      "bytes": 65576,
+      "source": "work/centering_comparison_20261013/results/calibration/centre10/display_d1_n7000_rep0.npz",
+      "transformation": "byte-for-byte"
+    },
+    "results/centering_comparison/full_integer/calibration/centre10/display_d2_n7000_rep0.npz": {
+      "sha256": "a61fb1d1c2ebbbf1334fe7675d683dbe2324a4bba90e0d1a187a8210deaa314e",
+      "bytes": 149742,
+      "source": "work/centering_comparison_20261013/results/calibration/centre10/display_d2_n7000_rep0.npz",
+      "transformation": "byte-for-byte"
+    },
+    "results/calibration/two_regions/details.csv": {
+      "sha256": "6fa09bfd7c063bd996ab540d487dcb9d2f13b2e0fafc03d35d36d37bb7a707c9",
+      "bytes": 744299,
+      "rows": 3600,
+      "source": "work/full_integer_20261013/results/calibration/two_regions/details.csv",
+      "transformation": "retain scalar run/seed/configuration/bound/coverage fields; omit P paths and machine metadata; normalize text line endings to LF"
+    },
+    "results/calibration/two_regions/run_meta.json": {
+      "sha256": "761cedd1f32ec2ba82325245717b8145b69e1615e9bbb52475d62b7e783898e3",
+      "bytes": 1255,
+      "source": "work/full_integer_20261013/results/calibration/two_regions/run_meta.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/supplementary/stress/details.csv": {
+      "sha256": "349b09331074de505c1a66144cadcd76747928282fd4171b7f967f30f6da978c",
+      "bytes": 2627013,
+      "rows": 9000,
+      "source": "work/full_integer_20261013/results/supplementary/stress/details.csv",
+      "transformation": "retain scalar run/seed/configuration/bound/coverage fields; omit P paths and machine metadata; normalize text line endings to LF"
+    },
+    "results/supplementary/stress/run_meta.json": {
+      "sha256": "5cc139cd8582315289515e2504653e6a39a66cd0627d43299600d66179610dc9",
+      "bytes": 960,
+      "source": "work/full_integer_20261013/results/supplementary/stress/run_meta.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/supplementary/dispersed/details.csv": {
+      "sha256": "ab6c37131d6d4bfbffb34a5abecb9d2fe5632c7867c0affb50a84b916eb13994",
+      "bytes": 61906,
+      "rows": 400,
+      "source": "work/full_integer_20261013/results/supplementary/dispersed/details.csv",
+      "transformation": "retain scalar run/seed/configuration/bound/coverage fields; omit P paths and machine metadata; normalize text line endings to LF"
+    },
+    "results/supplementary/dispersed/run_meta.json": {
+      "sha256": "075d385bb1af175409d514ece6663108ed5a4ee936e93b50d12a1a2691929a0b",
+      "bytes": 965,
+      "source": "work/full_integer_20261013/results/supplementary/dispersed/run_meta.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/supplementary/two_sided/details.csv": {
+      "sha256": "97cd23884d75b6943245a828d6b963f3f7748f32e1207e38a04754537d0aeda3",
+      "bytes": 740901,
+      "rows": 4500,
+      "source": "work/full_integer_20261013/results/supplementary/two_sided/details.csv",
+      "transformation": "retain scalar run/seed/configuration/bound/coverage fields; omit P paths and machine metadata; normalize text line endings to LF"
+    },
+    "results/supplementary/two_sided/run_meta.json": {
+      "sha256": "49465af526736b878c67c2e6f93f8815385787ba9ec744f69bd007ce19f7be63",
+      "bytes": 966,
+      "source": "work/full_integer_20261013/results/supplementary/two_sided/run_meta.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/supplementary/shared_vs_conditional/details.csv": {
+      "sha256": "483f9c815ccee5bde53b353bacef38641f6664af5462d1c6f1a469c2a20cc2a3",
+      "bytes": 92120,
+      "rows": 400,
+      "source": "work/full_integer_20261013/results/supplementary/shared_vs_conditional/details.csv",
+      "transformation": "retain scalar run/seed/configuration/bound/coverage fields; omit P paths and machine metadata; normalize text line endings to LF"
+    },
+    "results/supplementary/shared_vs_conditional/run_meta.json": {
+      "sha256": "959d75868d25e1f40f0e8934287f0cd0708aded6d4dcb988aea292d2093a1b52",
+      "bytes": 989,
+      "source": "work/full_integer_20261013/results/supplementary/shared_vs_conditional/run_meta.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/real_data/actg/summary.json": {
+      "sha256": "9ddedc5dc016fe51e080ac84512692fffa89c8fa1cddaa24aa6a1bddf4161206",
+      "bytes": 35267,
+      "source": "work/full_integer_20261013/results/real_data/actg/summary.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/real_data/actg/run_meta.json": {
+      "sha256": "7f764227e9866dac1e391f4e5a8f3418ac4244f6c9931164828a2a646f1674cb",
+      "bytes": 414,
+      "source": "work/full_integer_20261013/results/real_data/actg/run_meta.json",
+      "transformation": "byte-for-byte"
+    },
+    "results/real_data/actg/display_pieces_change.csv": {
+      "sha256": "69bb787e8af4e61ea1a001de2098a69ee617d5803acddbd0083dc81f0e1f586b",
+      "bytes": 826,
+      "source": "work/full_integer_20261013/results/real_data/actg/display_pieces_change.csv",
+      "transformation": "byte-for-byte"
+    },
+    "results/real_data/actg/display_pieces_raw.csv": {
+      "sha256": "6ebf674003929076bcf98fd084e23eecda0d848ee77764a00888a2616b1bc7dd",
+      "bytes": 901,
+      "source": "work/full_integer_20261013/results/real_data/actg/display_pieces_raw.csv",
+      "transformation": "byte-for-byte"
+    },
+    "results/real_data/actg/stability.csv": {
+      "sha256": "1958f12e992448b0b393df621d5b8619c94be628427704032997e7023673cb5d",
+      "bytes": 904,
+      "source": "work/full_integer_20261013/results/real_data/actg/stability.csv",
+      "transformation": "byte-for-byte"
+    },
+    "results/real_data/noy/summary.json": {
+      "sha256": "9ff979b28735f5044f7bf6dab19e4bab7cf67e22adae5f7b8eac51ce6c8220f2",
+      "bytes": 18187,
+      "source": "work/full_integer_20261013/results/real_data/noy/summary.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/real_data/noy/run_meta.json": {
+      "sha256": "3a687d864ab7825455f81186d2aa7202f2e1b24051e1715c37a7e760f98ab3ff",
+      "bytes": 415,
+      "source": "work/full_integer_20261013/results/real_data/noy/run_meta.json",
+      "transformation": "byte-for-byte"
+    },
+    "results/real_data/noy/display_pieces_quality.csv": {
+      "sha256": "94d3913ce1c91cc417d0406e6ace5cc8e8dc64a63a2622c5806b6fbe75a31ee0",
+      "bytes": 870,
+      "source": "work/full_integer_20261013/results/real_data/noy/display_pieces_quality.csv",
+      "transformation": "byte-for-byte"
+    },
+    "results/real_data/noy/display_pieces_time.csv": {
+      "sha256": "5858b3b7297b4b20882ff32294c1396f78dd5572f8ee9fb8c365f622db3c280a",
+      "bytes": 925,
+      "source": "work/full_integer_20261013/results/real_data/noy/display_pieces_time.csv",
+      "transformation": "byte-for-byte"
+    },
+    "results/real_data/noy/stability.csv": {
+      "sha256": "547e2f86ca3220744b6b228c6d6ab7089397edf844c34bb355d1ff48b0aa8fb4",
+      "bytes": 889,
+      "source": "work/full_integer_20261013/results/real_data/noy/stability.csv",
+      "transformation": "byte-for-byte"
+    },
+    "results/real_data/ggl/summary.json": {
+      "sha256": "09def6bcad51e10acc2d6a4a9446914cd69a1b48776edbcac95942ef87d127bf",
+      "bytes": 4036,
+      "source": "work/full_integer_20261013/results/real_data/ggl/summary.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/real_data/ggl/display_pieces.csv": {
+      "sha256": "caaf4cddb27f814a3d1ec0e038f3464ddb7cb409b5d626edb42da3f1f8ae24d5",
+      "bytes": 1803,
+      "source": "work/full_integer_20261013/results/real_data/ggl/display_pieces.csv",
+      "transformation": "byte-for-byte"
+    },
+    "results/real_data/ggl/robustness.csv": {
+      "sha256": "2cefb10ad0acc8cf087d96ea312579af770c91033e118a9513ce468e3d50c235",
+      "bytes": 1345,
+      "source": "work/full_integer_20261013/results/real_data/ggl/robustness.csv",
+      "transformation": "byte-for-byte; normalize text line endings to LF"
+    },
+    "results/real_data/actg/two_covariates.json": {
+      "sha256": "6a687ea37481e863ad1f20cb93ae888690dd51a6e14c31e6f1d4db5ad2db702f",
+      "bytes": 28640,
+      "source": "work/full_integer_20261013/results/real_data/actg/two_covariates.json",
+      "transformation": "omit full P paths; retain summary numbers and candidate domain"
+    },
+    "results/supplementary/effect_size/details.csv": {
+      "source": "previously archived result retained without new experiments",
+      "retained_from_git_commit": "2e17a850c14f2f3ae37da0310fca98543456e09b",
+      "transformation": "LF text normalization only",
+      "sha256": "460a10dd608f9958c64f1486bc0ed5258e152f7bf59b8d24ab340ca9cd6744e8",
+      "bytes": 320505
+    },
+    "results/supplementary/effect_size/run_meta.json": {
+      "source": "previously archived result retained without new experiments",
+      "retained_from_git_commit": "2e17a850c14f2f3ae37da0310fca98543456e09b",
+      "transformation": "LF text normalization only",
+      "sha256": "e2010e98db3ab325a1dee6add5185f18365634f4b6db0e807f8bd24bdf689ba4",
+      "bytes": 561
+    },
+    "results/supplementary/rates/details.csv": {
+      "source": "previously archived result retained without new experiments",
+      "retained_from_git_commit": "2e17a850c14f2f3ae37da0310fca98543456e09b",
+      "transformation": "LF text normalization only",
+      "sha256": "8c809a4f4af15bc48b7f64adad27e19e8360ba436dc22443dc5c58f20d3ef6b0",
+      "bytes": 353682
+    },
+    "results/supplementary/rates/run_meta.json": {
+      "source": "previously archived result retained without new experiments",
+      "retained_from_git_commit": "2e17a850c14f2f3ae37da0310fca98543456e09b",
+      "transformation": "LF text normalization only",
+      "sha256": "d1a7cbe11be67c211893a09e69fbb021abf801bc6ffc6bf09edb5226de7a0aa9",
+      "bytes": 549
+    },
+    "results/timing/methods/details.csv": {
+      "source": "previously archived result retained without new experiments",
+      "retained_from_git_commit": "2e17a850c14f2f3ae37da0310fca98543456e09b",
+      "transformation": "LF text normalization only",
+      "sha256": "16e01d9c11c011e60e42eceb83c9d23f44c4b7d2e14fc9cdb2cb70a3444da461",
+      "bytes": 46082
+    },
+    "results/timing/methods/run_meta.json": {
+      "source": "previously archived result retained without new experiments",
+      "retained_from_git_commit": "2e17a850c14f2f3ae37da0310fca98543456e09b",
+      "transformation": "LF text normalization only",
+      "sha256": "f18bc3c8fc80cd9550d4879a1356f53a686f83aa111e7ab8b73c777fa3f9ab3f",
+      "bytes": 653
+    },
+    "results/timing/warm_start/details.csv": {
+      "source": "previously archived result retained without new experiments",
+      "retained_from_git_commit": "2e17a850c14f2f3ae37da0310fca98543456e09b",
+      "transformation": "LF text normalization only",
+      "sha256": "334e964fcad54c2bb11bbb7598865e63806b67a124a85f19b427d86ddd55986c",
+      "bytes": 22579
+    },
+    "results/timing/warm_start/run_meta.json": {
+      "source": "previously archived result retained without new experiments",
+      "retained_from_git_commit": "2e17a850c14f2f3ae37da0310fca98543456e09b",
+      "transformation": "LF text normalization only",
+      "sha256": "14697a8bb33b666b3597fa2739e4e8ec2c4cb3f1837905293d5c950ca7f7ce05",
+      "bytes": 372
+    }
+  },
+  "omitted": [
+    "full per-size p-value paths",
+    "execution host metadata",
+    "provider row-level data",
+    "ACTG unit-level scatter arrays"
+  ],
+  "semantics": {
+    "main_calibration": "uncentered raw versus within-region centered adjusted, same outcomes/assignments/draws",
+    "supplementary_raw": "within-region centered statistic on original outcomes; OLS diagnostics remain separate"
+  },
+  "retained_original_series": [
+    "supplementary/rates",
+    "supplementary/effect_size",
+    "timing/methods",
+    "timing/warm_start"
+  ],
+  "line_endings": "All published CSV/JSON use LF; checksums are valid in clean Git checkouts.",
+  "coverage": "All tracked result inputs used by default figure/table generation, including retained rates, timing, warm-start and effect-size series.",
+  "generators": {
+    "plot_figures.py": "920ac4a909f6bb4431ce4082f736cf18eebd204c0ce850ee6e750ebe6263745e",
+    "make_tables.py": "287bf69caa03c1e208969d6dfec6bb4d153ac340a208910ed380cfc732e5945c",
+    "zeroreach/summaries.py": "d90199a098b250dd091ae67614db07f4dfdb429c2516774c9494da947f20f004",
+    "zeroreach/style.py": "65b17d305d1473bc5cb382c1d485e22415bc07896d611a156f16b35128c3caec",
+    "zeroreach/display.py": "24ff414f9e932af1eeeb028d6723b5cd02c5c9f4426352ef8b2289ab0750306f"
+  },
+  "artifacts": {
+    "figures/fig_coverage_stress.pdf": "cfb89661fed8ad4e980ccf536ada29134e9a04488419af6b8d7253f6f0b8833a",
+    "figures/fig_d1_calibration_coverage.pdf": "769c9a1a78873a6d66ab27196fad1fc153f445e327293210eb2b1568bdf52ae4",
+    "figures/fig_d1_calibration_ratio.pdf": "53e22c640ebf6560c50162751b52082e2b6b09182664c55b21ffbff09c44ec5b",
+    "figures/fig_d1_computation_time.pdf": "1898bdd4d3eaa7252e13e4158e0f2fb796f3172e51397595db99619399e950fc",
+    "figures/fig_d1_regions_n7000.pdf": "6161199eac9dadc328582fad13033c0a0c4a253db4de9a294cd870458b4212bd",
+    "figures/fig_d2_calibration_coverage.pdf": "f9a98b052108efd6b7fd2505ac5e107482f362c24226e25736d8a8c11a6ca941",
+    "figures/fig_d2_calibration_ratio.pdf": "36bf4d744f8122447c5561a3f3917137d2bfa84638971755b6d21f9a7c940656",
+    "figures/fig_d2_computation_time.pdf": "687e6fdacf5ae689dd231e0af73a2c123249376805d3d9337e545c52b4ccaed3",
+    "figures/fig_d2_regions_n7000.pdf": "697951ff27a87331378a1eda4e7b1855e97c8696bc88c56fb6b122a90a4ee6f5",
+    "figures/fig_effect_size.pdf": "138dbe6e52fee6cfcb0587f621c6bc52fed93e7c923ae19f39782bfa8a9cf93e",
+    "figures/fig_rate_of_convergence.pdf": "65ecdb265fd40d35dc46cd83d2aa0ea36b3f3487ed0bbec33f97afdcc6e03168",
+    "figures/fig_real_actg175_2d_regions.pdf": "baa33ad0bbcb474d529fcd62c46942374addd7981fe1902ff30e8132f7aa917f",
+    "figures/fig_real_actg175_regions.pdf": "e83d1222b086dbd416cb0e9bc6666dc0c60807b6c686e8d34e0e66f2aab16d86",
+    "figures/fig_real_ggl_regions.pdf": "6dd94fd4d22bb0640cba52aaaf9dcd5a41865e4576db4990dcba8a842bd08684",
+    "figures/fig_real_noy_regions.pdf": "3c57f5612698dfb2705262ca1b6d9444723401ba713a7bdc802c2b269c420b9a",
+    "figures/fig_warm_start_vs_M.pdf": "f8ba852772e56ec1c3d508c20a69b3efc343178d0e4b456b53dbcf1e70797b6c",
+    "figures/knn_boundary_cap.pdf": "97ffb9f8ae4f64bb64352dbbc250b9c04661d020de06a838271e6a2cb8ddd872",
+    "tables/actg_twoarm.csv": "24bc42a4295f5c787f7a9322c37d7ad76b9b98fbd360fa08640be0cf3ff78bd7",
+    "tables/actg_twoarm.tex": "f31ce00fdcbddc155d475ca2de4c03ab1c12ed7d73028a3603788c308dffb585",
+    "tables/calibration.csv": "fa843ec3c5e373216eb1277347daeec39a8f3c2fc1fcc44853a0ca0d59dc549a",
+    "tables/dispersed.csv": "2523513b51c374b7c23963730429ac6e7352a44402bffdbf82a2f78792cbf59c",
+    "tables/dispersed.tex": "e091d9e34b4e85b0aef82cd8274461ea6b6fc6bf34eed9a28fb8675deeea4539",
+    "tables/effect_size.csv": "5784229ab4cd69afd2bbe8385830e24ddc64b84816c021f694d2d1cc0f08cac7",
+    "tables/effect_size.tex": "65c2371f90686d0fb5b3416c8d9d8b0606d65482937bd938d0f79adbb14293f4",
+    "tables/rates.csv": "6c8ce583471af71ecd4fc3b0f3ec9aaab220514e110eb5ec6ed4426ab9febb17",
+    "tables/rates.tex": "3c4a2380a8a43d5d63d210b16c88874ecf051552818f2017c3aa761030c557ee",
+    "tables/shared_vs_conditional.csv": "0b27c62640c84182b456c205b02fb6bc45d29ac5757271d87d679a619010908b",
+    "tables/shared_vs_conditional.tex": "1bd73c90d059f46f2eb01eef918b7499f40006734414056551ff21ffac991155",
+    "tables/stress.csv": "7973a37a91c9ec819c857f1eb12515e3f6ddf0e7268c3c630cf30d33a935b4fb",
+    "tables/stress.tex": "1db83a8eef2457c319961674e0470c3e9d2fa8f5754ea2f6d0d1fe340db21335",
+    "tables/timing.csv": "df2eac3c2d51469e6aa5bcb0ccf261e5a2c0171096ac6c754507336510d92e57",
+    "tables/two_regions.csv": "e606e342cd78d55fa3cf76c11286655f3975f4d73977b7f874343832461e6a75",
+    "tables/two_regions.tex": "4f9355085c44fb0bdd0077a4e1902fd791464842d49ea69a0c5c5eaf5cf35ce4",
+    "tables/two_sided.csv": "04bd385280d7ff360781d2aef3cf8e6b0c1ef2e728c6858efb155f11e339b41b",
+    "tables/two_sided.tex": "0294c4b34a870a5118053e974a08f87b1f33d2f6b8591a6e725e22a269ede4ea",
+    "tables/warm_start.csv": "59851878b727783fe1490e004e83a88ec33b2e6df30c6b2140d2c785e24c1cab",
+    "tables/warm_start.tex": "d4b1dbd2043a5eed32f17744afd562a57fbc5fcb570b575fe943635a63b29126"
+  },
+  "validation": {
+    "figures_match_paper": "All 17 PDF assets have identical 150dpi pixels and extracted text to the accepted manuscript assets.",
+    "public_input_rebuild": "Default scripts succeed using published compact inputs; 15 data-generated PDF assets are regenerated. ACTG 2D scatter and analytic schematic are explicitly retained.",
+    "tables": "All 20 CSV/TeX files match the complete local-input rebuild byte-for-byte; updated simulation tabular fragments match the accepted manuscript tables.",
+    "full_paths": "Full per-size paths retained in original local bundles, not included in this compact release.",
+    "deterministic_pdf_regeneration": "CreationDate and ModDate omitted; public-only and full-local rebuilds produce identical PDF bytes in the recorded environment.",
+    "actg_scatter_override": "--actg-scatter-input accepts the matching local NPZ; invalid rank shape and incorrect mask size are rejected."
+  }
+}

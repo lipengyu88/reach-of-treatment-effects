@@ -228,7 +228,8 @@ def generate(dim, n, rep, zero='centre10', effect='const', scenario='S0', M=500,
     """One simulated dataset. Returns covariates W, ranks, the zero-effect indicator, effects tau, the
     assignment z, the raw outcome y, the outcome adjusted with the independent calibration sample
     (adj_indep), the outcome adjusted in sample (adj_insample, Appendix H.1 only), the M shared draws and
-    the 5% grid."""
+    the historical 5% grid under the compatibility key grid. Current experiment runners default to
+    all integer candidate sizes independently of this legacy helper field."""
     if dim not in (1, 2) or n < 3 or M < 1:
         raise ValueError('dimension must be 1 or 2, n >= 3 and M >= 1')
     seeds = seed_plan(rep, SIZE_INDEX.get(n, 0) if size_index is None else size_index)

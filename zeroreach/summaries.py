@@ -10,6 +10,9 @@ import numpy as np
 from .utils import REPO, wilson
 
 RESULTS = REPO / 'results'
+# This comparison has a different statistical meaning from the archived raw/OLS experiment.
+# Plot callers may select a completed external run by changing only CALIBRATION_RESULTS.
+CALIBRATION_RESULTS = RESULTS / 'centering_comparison/full_integer'
 SIZES = [200, 400, 600, 800, 1000, 4000, 7000, 10000, 13000]
 NS_RATE = [500, 1000, 2000, 4000, 8000, 16000]
 SCEN = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
@@ -32,6 +35,24 @@ def records(path):
             for row in df.to_dict('records')]
 
 
+
+def complete_integer_records(path, repetitions, expected_groups):
+    """Require the completed full-integer series before aggregating paper tables."""
+    recs = records(path)
+    groups = {}
+    for r in recs:
+        if r.get('grid_mode') != 'all' or r.get('search') != 'exact_descending':
+            raise ValueError(f'{path}: full integer descending-search records are required')
+        if r.get('M') != 500 or r.get('alpha') != 0.05:
+            raise ValueError(f'{path}: incompatible Monte Carlo configuration')
+        key = (r.get('variant', r.get('design')), r['dim'], r['n'])
+        groups.setdefault(key, []).append(r['rep'])
+    if set(groups) != set(expected_groups) or any(sorted(reps) != list(range(repetitions))
+                                                 for reps in groups.values()):
+        raise ValueError(f'{path}: missing, duplicated or unexpected repetition identities')
+    return recs
+
+
 def cov(k, n):
     _, lo, hi = wilson(k, n) if n else (None, np.nan, np.nan)
     return dict(k=int(k), R=int(n), rate=(k / n if n else None), wilson=[float(lo), float(hi)])
@@ -46,9 +67,30 @@ def slope(ns, ys):
 
 
 # ----------------------------------------------------------------------------------- Section 6.2 and H.2
-def calibration(design='centre10'):
-    """Mean bound / n, coverage of the grid bound with Wilson intervals, by dimension, n and outcome."""
-    recs = records(f'calibration/{design}/details.csv')
+def calibration_records(design='centre10', expected_reps=200):
+    """Read only explicitly identified uncentered-versus-centered records."""
+    import pandas as pd
+    from runners.run_calibration import run_config, validate_record
+    columns = set(run_config(design, 'all')) | {'dim', 'n', 'rep', 'K0', 'input_sha256'}
+    columns.update(f'{score}_{field}' for score in ('raw', 'adjusted')
+                   for field in ('bound', 'grid_bound', 'covers', 'grid_covers', 'integer_covers'))
+    # Full descending paths remain in separate original run bundles; compact plot inputs omit them.
+    frame = pd.read_csv(CALIBRATION_RESULTS / f'calibration/{design}/details.csv',
+                        usecols=lambda name: name in columns)
+    recs = frame.to_dict('records')
+    for rec in recs:
+        validate_record(rec, design, 'all')
+    actual = [(r['dim'], r['n'], r['rep']) for r in recs]
+    expected = {(dim, n, rep) for dim in (1, 2) for n in SIZES for rep in range(expected_reps)}
+    if len(actual) != len(set(actual)) or set(actual) != expected:
+        raise ValueError('Calibration figures require one complete record for every dimension, size and '
+                         f'repetition 0..{expected_reps - 1}; partial or duplicate results are not publishable')
+    return recs
+
+
+def calibration(design='centre10', expected_reps=200):
+    """Mean bound / n and full-integer coverage with Wilson intervals by dimension, n and statistic."""
+    recs = calibration_records(design, expected_reps)
     rows = []
     for dim in (1, 2):
         for n in SIZES:
@@ -64,17 +106,27 @@ def calibration(design='centre10'):
     return rows
 
 
-def display_rep(dim, n=7000):
-    """The replicate shown in the region displays: the first one whose raw and adjusted bounds both equal
-    the median bound of that outcome over the 200 replicates."""
-    recs = sorted((r for r in records('calibration/centre10/details.csv') if r['dim'] == dim and r['n'] == n),
-                  key=lambda r: r['rep'])
-    med = {s: st.median(r[f'{s}_grid_bound'] for r in recs) for s in ('raw', 'adjusted')}
-    return next(r['rep'] for r in recs if all(r[f'{s}_grid_bound'] == med[s] for s in med))
+def display_rep(dim, n=7000, expected_reps=200):
+    """Use the preselected replicate 0, independently of either group's resulting bound.
+
+    Exact integer medians need not be attained (nor jointly attained), so matching both medians is
+    not a defined selection rule for every experiment. The runner has always stored rep-0 displays.
+    """
+    if not any(r['dim'] == dim and r['n'] == n and r['rep'] == 0
+               for r in calibration_records(expected_reps=expected_reps)):
+        raise ValueError(f'Missing preselected display record: dim={dim}, n={n}, rep=0')
+    return 0
 
 
 def two_regions():
-    recs = records('calibration/two_regions/details.csv')
+    recs = complete_integer_records('calibration/two_regions/details.csv', 200,
+                                    [('two_regions', d, n) for d in (1, 2) for n in SIZES])
+    # This historical table reports the centred statistic on the original outcome.
+    # A revised raw/centred comparison uses a different meaning of the raw field.
+    if any(r.get('schema_version', 0) == 3 or r.get('raw_statistic') == 'uncentered_assignment_covariance'
+           for r in recs):
+        raise ValueError('The two-region table requires the historical centred-raw results, '
+                         'not the uncentred raw branch of the revised calibration comparison')
     res = {}
     for dim in (1, 2):
         for n in SIZES:
@@ -158,7 +210,8 @@ def warm_start():
 
 # --------------------------------------------------------------------------------------------- Appendix H
 def stress():
-    recs = records('supplementary/stress/details.csv')
+    recs = complete_integer_records('supplementary/stress/details.csv', 500,
+                                    [(s, 1, n) for s in SCEN for n in (200, 1000, 4000)])
     res = {}
     for s in SCEN:
         for n in (200, 1000, 4000):
@@ -187,7 +240,8 @@ def stress():
 
 
 def dispersed():
-    recs = records('supplementary/dispersed/details.csv')
+    recs = complete_integer_records('supplementary/dispersed/details.csv', 100,
+                                    [(s, 1, n) for s in ('dispersed5', 'cancel5') for n in (1000, 4000)])
     res = {}
     for v in ('dispersed5', 'cancel5'):
         for n in (1000, 4000):
@@ -203,7 +257,8 @@ def dispersed():
 
 
 def two_sided():
-    recs = records('supplementary/two_sided/details.csv')
+    recs = complete_integer_records('supplementary/two_sided/details.csv', 500,
+                                    [(s, 1, n) for s in ('const', 'neg', 'asym') for n in (200, 1000, 4000)])
     res = {}
     for v in ('const', 'neg', 'asym'):
         for n in (200, 1000, 4000):
@@ -218,7 +273,8 @@ def two_sided():
 
 
 def shared_vs_conditional():
-    recs = records('supplementary/shared_vs_conditional/details.csv')
+    recs = complete_integer_records('supplementary/shared_vs_conditional/details.csv', 200,
+                                    [('centre10-const', 1, n) for n in (1000, 4000)])
     res = {}
     for n in (1000, 4000):
         rr = [r for r in recs if r['n'] == n]
@@ -252,4 +308,20 @@ def effect_size():
 
 # ------------------------------------------------------------------------------------------------ real data
 def real(dataset, name='summary.json'):
-    return json.loads((RESULTS / 'real_data' / dataset / name).read_text())
+    result = json.loads((RESULTS / 'real_data' / dataset / name).read_text())
+    if dataset == 'ggl':
+        if not result.get('search', '').startswith('all integer sizes'):
+            raise ValueError('GGL presentation requires the completed full-integer search')
+        rows = [result]
+    else:
+        if result.get('grid_mode') != 'all':
+            raise ValueError(f'{dataset}: full-integer results required')
+        rows = list(result['outcomes'].values()) if 'outcomes' in result else [result[s] for s in ('raw', 'change')]
+        for row in rows:
+            n = result.get('n', row.get('n'))
+            if result.get('grid', row.get('grid')) != list(range(1, n + 1)):
+                raise ValueError(f'{dataset}: incomplete integer candidate domain')
+    for row in rows:
+        if row['bound'] != row['certificate'] or row['first_rejected'] != row['bound'] + 1:
+            raise ValueError(f'{dataset}: inconsistent bound/certificate summary')
+    return result

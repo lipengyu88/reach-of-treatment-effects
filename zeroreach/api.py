@@ -8,18 +8,22 @@ from .grids import envelope_bound, paper_grid
 from .randomization import sample_crd, sample_within_strata
 
 
-def upper_bound(W, Y, Z, alpha=0.05, M=5000, grid='paper', seed=0, draws=None, strata=None):
+def upper_bound(W, Y, Z, alpha=0.05, M=5000, grid='all', seed=0, draws=None, strata=None):
     """Upper confidence bound for the size of the largest zero-effect region.
 
     W      pre-treatment covariate: shape (n,) for blocks of consecutive units in the order of W, or (n, 2)
            for nearest-neighbour regions in normalized ranks (Section 4). Ties are broken by unit index.
     Y, Z   outcomes and binary treatment indicators (Z = 1 treated).
-    grid   'paper' for the 5%-of-n grid inverted with the tail envelope (Section 6.1), 'all' for every size
-           with the descending search (no monotonicity assumption), or an explicit list of sizes.
+    grid   'all' (default) for integer candidate sizes 1,...,n, using exact descending search without
+           a monotonicity assumption. 'paper' explicitly reproduces the historical 5%-of-n candidate
+           grid; an explicit list of integer sizes is also accepted. Sparse-grid bounds concern the
+           searched-grid target; certificate is the corresponding upper bound over all integer sizes.
     draws  optional (M, n) array of assignments drawn from the design; by default M completely randomized
            draws with the observed number of treated units (within strata if `strata` is given).
 
-    Returns a dict with the bound, the first rejected size r* and the certificate r* - 1 (grid searches),
+    The statistic is sum((Z-pi)*(Y-mean_B(Y))) within each candidate region.
+    Returns a dict with the bound, the first tail-envelope-rejected size r* (None if none is rejected),
+    and the certificate r* - 1 (n if r* is None). For 'all', certificate equals bound. It also returns
     the largest p-value at each evaluated size, and `region`: a boolean mask (in the original unit order)
     of the units covered by candidate regions of the reported size that are not rejected. The covered
     units are descriptive; they are not a confidence set for the location of a zero-effect region."""
@@ -42,12 +46,23 @@ def upper_bound(W, Y, Z, alpha=0.05, M=5000, grid='paper', seed=0, draws=None, s
         order = None
         orders = S.knn_orders(W)
         ev = S.Shared2D(y, z, draws, orders)
-    out = dict(n=n, M=len(draws), alpha=alpha)
+    out = dict(n=n, M=len(draws), alpha=alpha, statistic='within_region_centered_covariance',
+               grid_mode=grid if isinstance(grid, str) else 'explicit', regions_not_rejected=0)
     if isinstance(grid, str) and grid == 'all':
         bound = S.descending(ev, n, alpha)
-        out.update(bound=int(bound), first_rejected=None, certificate=None)
+        out.update(bound=int(bound), first_rejected=int(bound) + 1 if bound < n else None,
+                   certificate=int(bound), candidate_sizes=list(range(1, n + 1)))
     else:
-        sizes = paper_grid(n) if isinstance(grid, str) and grid == 'paper' else sorted(int(k) for k in grid)
+        if isinstance(grid, str):
+            if grid != 'paper':
+                raise ValueError("grid must be 'all', 'paper', or an explicit list of integer sizes")
+            sizes = paper_grid(n)
+        else:
+            values = list(grid)
+            if any(not np.isfinite(k) or int(k) != k or not 1 <= k <= n for k in values):
+                raise ValueError('Explicit candidate sizes must be integers between 1 and n')
+            sizes = sorted(set(int(k) for k in values))
+        out['candidate_sizes'] = sizes
         P = {k: float(ev.max_p(k)) for k in sorted(sizes, reverse=True)}
         bound, rstar = envelope_bound(P, sizes, alpha)
         out.update(bound=int(bound), first_rejected=rstar, certificate=n if rstar is None else rstar - 1)

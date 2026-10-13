@@ -1,7 +1,9 @@
 """Compiled kernels for the searches of Table 1 (one-dimensional blocks, two-dimensional rank neighbourhoods).
 
 Choices that follow the paper:
-  * the centred linear statistic, written as k*sum(zY) - sum(Y)*sum(z) (Section 3.2);
+  * the default centred linear statistic, written as k*sum(zY) - sum(Y)*sum(z) (Section 3.2);
+  * separate raw comparison kernels use sum(zY), equivalent for one-sided tests to
+    sum((z-pi)*Y) because the subtracted pi*sum(Y) is fixed across assignments;
   * the plus-one Monte Carlo p-value with ties counted, maximized over candidate regions;
   * shared tests: M global completely randomized draws reused for every region (Section 3.2);
   * conditional tests: every region redrawn from scratch with its observed treated count fixed
@@ -699,3 +701,183 @@ def shared1d_chunk_counts(klist, z, draws, Fz, Fhi, Flo, Yhi, Ylo, Zc, Ohi, Olo,
             if const[j, s]:
                 cnt[j, s] = M
     return cnt, unres.sum(), struct.sum()
+
+
+# ----------------------------------------------------------------------------
+# Raw shared tests. Do not use the centered statistic's constant-region or
+# all-treated/all-control shortcuts: under global randomization the number of
+# treated units inside a region is random, even when its outcomes are constant.
+# Prefix/running sums screen comparisons, and exact expansions resolve near
+# ties using sum((z_draw-z_observed)*Y). No tolerance is used to count a tie.
+# ----------------------------------------------------------------------------
+@njit(inline='always')
+def _raw_expansion_add(partials, length, x):
+    """Add one binary64 value to a nonoverlapping exact-sum expansion."""
+    out = 0
+    for j in range(length):
+        yy = partials[j]
+        if abs(x) < abs(yy):
+            tmp = x
+            x = yy
+            yy = tmp
+        hi = x + yy
+        lo = yy - (hi - x)
+        if lo != 0.0:
+            partials[out] = lo
+            out += 1
+        x = hi
+    if x != 0.0:
+        partials[out] = x
+        out += 1
+    return out
+
+
+@njit(cache=True)
+def _raw_exact_block_sign(y, z, draw, start, end):
+    # Scan identical assignments first: these frequent exact ties need no allocation.
+    first = start
+    while first < end and (draw[first] == z[first] or y[first] == 0.0):
+        first += 1
+    if first == end:
+        return 0, True
+    partials = np.empty(end - first)
+    length = 0
+    for i in range(first, end):
+        if draw[i] != z[i]:
+            x = y[i] if draw[i] else -y[i]
+            length = _raw_expansion_add(partials, length, x)
+    if length == 0:
+        return 0, False
+    return (1 if partials[length - 1] > 0.0 else -1), False
+
+
+@njit(cache=True)
+def _raw_exact_region_sign(y, z, drawsT, m, order, k):
+    first = 0
+    while first < k:
+        u = order[first]
+        if drawsT[u, m] != z[u] and y[u] != 0.0:
+            break
+        first += 1
+    if first == k:
+        return 0, True
+    partials = np.empty(k - first)
+    length = 0
+    for p in range(first, k):
+        u = order[p]
+        if drawsT[u, m] != z[u]:
+            x = y[u] if drawsT[u, m] else -y[u]
+            length = _raw_expansion_add(partials, length, x)
+    if length == 0:
+        return 0, False
+    return (1 if partials[length - 1] > 0.0 else -1), False
+
+
+@njit(parallel=True, cache=True)
+def shared1d_raw_chunk_counts(klist, y, z, draws, Fz, Fhi, Flo, Zc, Ohi, Olo,
+                             changes, radius_unit, Ts):
+    """Tiled raw exceedance counts, with exact signs for near comparisons."""
+    M, n = draws.shape
+    b = klist.size
+    nbmax = n - klist.min() + 1
+    tobs = np.zeros((b, nbmax))
+    qzo = np.zeros((b, nbmax), np.int64)
+    const = np.zeros((b, nbmax), np.bool_)
+    for j in prange(b):
+        k = klist[j]
+        for s in range(n - k + 1):
+            e = s + k
+            tobs[j, s] = (Ohi[e] - Ohi[s]) + (Olo[e] - Olo[s])
+            qzo[j, s] = Zc[e] - Zc[s]
+            const[j, s] = changes[e - 1] == changes[s]
+    cnt = np.zeros((b, nbmax), np.int64)
+    ntile = (nbmax + Ts - 1) // Ts
+    struct = np.zeros(ntile, np.int64)
+    for tile in prange(ntile):
+        s0 = tile * Ts
+        s1 = min(nbmax, s0 + Ts)
+        for m in range(M):
+            for j in range(b):
+                k = klist[j]
+                send = min(s1, n - k + 1)
+                for s in range(s0, send):
+                    e = s + k
+                    qz = Fz[m, e] - Fz[m, s]
+                    qo = qzo[j, s]
+                    if const[j, s]:
+                        # Compare the integer counts directly, avoiding cancellation.
+                        if y[s] == 0.0 or qz == qo:
+                            cnt[j, s] += 1
+                            struct[tile] += 1
+                        elif (qz > qo) == (y[s] > 0.0):
+                            cnt[j, s] += 1
+                        continue
+                    td = (Fhi[m, e] - Fhi[m, s]) + (Flo[m, e] - Flo[m, s])
+                    delta = td - tobs[j, s]
+                    if abs(delta) <= radius_unit:
+                        if qz == qo and (qz == 0 or qz == k):
+                            sign, same = 0, True
+                        else:
+                            sign, same = _raw_exact_block_sign(y, z, draws[m], s, e)
+                        cnt[j, s] += sign >= 0
+                        struct[tile] += same
+                    else:
+                        cnt[j, s] += delta >= 0.0
+    return cnt, 0, struct.sum()
+
+
+@njit(parallel=True, cache=True)
+def shared2d_raw_move_and_count(k_from, k_to_list, y, z, drawsT, orders, constant_until,
+                               Qz, Qhi, Qlo, Qzo, Qzyo, Qzyolo, radius_unit,
+                               count_out, struct_out):
+    """Move raw treated-outcome sums and record all-center exceedance counts."""
+    n, M = drawsT.shape
+    for c in prange(n):
+        kcur = k_from
+        for j in range(k_to_list.size):
+            kt = k_to_list[j]
+            while kcur != kt:
+                removing = kcur > kt
+                pos = kcur - 1 if removing else kcur
+                u = orders[c, pos]
+                sign = -1 if removing else 1
+                yu = sign * y[u]
+                if z[u]:
+                    Qzo[c] += sign
+                    h, err = _two_sum(Qzyo[c], yu)
+                    Qzyo[c] = h
+                    Qzyolo[c] += err
+                for m in range(M):
+                    label = drawsT[u, m]
+                    Qz[c, m] += sign * label
+                    h, err = _two_sum(Qhi[c, m], yu * label)
+                    Qhi[c, m] = h
+                    Qlo[c, m] += err
+                kcur += sign
+            qo = Qzo[c]
+            tobs = Qzyo[c] + Qzyolo[c]
+            constant = kcur <= constant_until[c]
+            y0 = y[orders[c, 0]]
+            count = 0
+            structural = 0
+            for m in range(M):
+                qz = Qz[c, m]
+                if constant:
+                    if y0 == 0.0 or qz == qo:
+                        count += 1
+                        structural += 1
+                    elif (qz > qo) == (y0 > 0.0):
+                        count += 1
+                    continue
+                delta = (Qhi[c, m] + Qlo[c, m]) - tobs
+                if abs(delta) <= radius_unit:
+                    if qz == qo and (qz == 0 or qz == kcur):
+                        comparison, same = 0, True
+                    else:
+                        comparison, same = _raw_exact_region_sign(y, z, drawsT, m, orders[c], kcur)
+                    count += comparison >= 0
+                    structural += same
+                else:
+                    count += delta >= 0.0
+            count_out[j, c] = count
+            struct_out[j, c] = structural

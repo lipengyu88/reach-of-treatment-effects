@@ -1,4 +1,4 @@
-"""Searched grids and the inversion of a p-value path on a grid (Section 6.1 and Appendix E.6).
+"""Candidate grids and tail-envelope inversion; sparse helpers retain historical reproducibility.
 
 On a pre-specified grid the bound is the largest searched size not rejected by the tail envelope
 P_r^up = max_{t >= r} P_t; the next searched size r* is rejected, and r* - 1 is an upper confidence bound
@@ -10,7 +10,9 @@ import numpy as np
 
 
 def paper_grid(n):
-    """The 5%-of-n grid of Section 6: step max(1, round(0.05 n)); neither 1 nor n is forced in."""
+    """Historical 5%-of-n grid: step max(1, round(0.05 n)); neither 1 nor n is forced in.
+
+    Current paper experiments use all integer sizes; this helper is an explicit legacy option."""
     n = int(n)
     if n < 1:
         raise ValueError('n must be a positive integer')
@@ -19,7 +21,7 @@ def paper_grid(n):
 
 
 def ggl_grid(n):
-    """The 32 searched lengths of the Gerber-Green-Larimer analysis (Section 6.7): fixed lengths
+    """Historical sparse Gerber-Green-Larimer candidate lengths: fixed lengths
     50, 100, 200, 500, 1000, 2000, 5000, 10000 together with 25 lengths equally spaced on a log scale
     between 50 and n."""
     if n < 50:

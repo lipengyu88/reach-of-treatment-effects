@@ -226,6 +226,45 @@ class Shared2D(_Stats):
         return p
 
 
+class Shared1DRaw(Shared1D):
+    """One-sided shared tests using sum((Z - pi) * Y), without local centering.
+
+    The fixed term -pi * sum(Y) cancels from every observed-versus-draw comparison,
+    so the kernel compares sum(Z * Y). The default Shared1D remains centered.
+    """
+
+    def _chunk(self, klist):
+        cnt, unres, struct = K.shared1d_raw_chunk_counts(
+            np.asarray(klist, np.int64), self.y, self.z, self.draws,
+            self.Fz, self.Fhi, self.Flo, self.Zc, self.Ohi, self.Olo,
+            self.changes, self.radius_unit, self.Ts)
+        self.unresolved += int(unres)
+        self.structural += int(struct)
+        return cnt
+
+    def gaussian_max(self, k):
+        raise NotImplementedError('The centered Gaussian proposal is not valid for the raw statistic')
+
+
+class Shared2DRaw(Shared2D):
+    """Two-dimensional counterpart of Shared1DRaw; the geometry is unchanged."""
+
+    def _counts(self, klist):
+        klist = np.asarray(klist, np.int64)
+        out = np.zeros((len(klist), self.n), np.int64)
+        struct = np.zeros((len(klist), self.n), np.int64)
+        K.shared2d_raw_move_and_count(
+            self.current, klist, self.y, self.z, self.drawsT, self.orders,
+            self.constant_until, self.Qz, self.Qhi, self.Qlo, self.Qzo,
+            self.Qzyo, self.Qzyolo, self.radius_unit, out, struct)
+        self.current = int(klist[-1])
+        self.structural += int(struct.sum())
+        return out
+
+    def gaussian_max(self, k):
+        raise NotImplementedError('The centered Gaussian proposal is not valid for the raw statistic')
+
+
 # ---------------------------------------------------------------- conditional
 class Cond1D(_Stats):
     def __init__(self, y, z, M, seed):

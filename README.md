@@ -1,64 +1,54 @@
 # The reach of treatment effects: randomization inference for zero-effect regions
 
-This repository contains the code, the simulation and real-data results, and the figures and tables of
-the paper *The reach of treatment effects: randomization inference for zero-effect regions* by Pengyu Li
-and Yao Zhang.
+Code and reproducibility materials for the paper by Pengyu Li and Yao Zhang. This revision contains
+the corrected **uncentred versus within-region-centred comparison** and the completed
+**all-integer-size analyses**. Figure and table numbers below follow the current arXiv manuscript;
+the Biometrika version has not yet been synchronized with this revision.
 
-Given a pre-treatment covariate, the method asks how large a group of units can be on which treatment
-has no effect at all. Local Fisher randomization tests are run on candidate regions of the covariate
-(blocks of consecutive units in one dimension, nearest-neighbour regions in normalized ranks in two) and
-inverted into an upper confidence bound for the size of the largest zero-effect region. Shared
-randomization draws, the centred linear statistic and cumulative sums reduce the cost of all local tests
-from O(Mn^3) to O(Mn^2); the descending search needs no further assumption, and bisection with a Gaussian
-warm start is faster under a monotonicity assumption.
+The method bounds the size of the largest candidate covariate region in which every unit has zero
+treatment effect. Regions are consecutive blocks in a one-dimensional ordering, or nearest-neighbour
+sets in normalized ranks in two dimensions. The displayed non-rejected regions are descriptive,
+not confidence sets for their locations.
 
-## Repository layout
+## Statistical definitions and search
+
+For a region B, the main simulation compares
 
 ```text
-.
-├── zeroreach/                  the method (importable package)
-│   ├── api.py                  upper_bound(): the whole procedure for one dataset
-│   ├── kernels.py              compiled kernels (numba): shared and conditional tests, 1D blocks, 2D regions
-│   ├── search.py               evaluators and the searches of Table 1 (descending, bisection, warm start)
-│   ├── grids.py                searched grids and the inversion with the tail envelope
-│   ├── randomization.py        complete randomization, randomization within strata or cells
-│   ├── designs.py              simulation designs of Section 6 and Appendix H
-│   ├── realdata.py             readers for the three experiments of Sections 1, 6.7 and 6.8
-│   ├── display.py              aggregates behind the region displays
-│   ├── summaries.py, style.py  summaries of results/ and figure style
-│   └── utils.py
-├── runners/
-│   ├── run_calibration.py      Section 6.2, Section 6.5 and Appendix H.2
-│   ├── run_supplementary.py    Section 6.3 and Appendix H
-│   ├── run_timing.py           Section 6.4 and Appendix H.4
-│   └── run_real_data.py        Sections 1, 6.7 and 6.8
-├── results/                    outputs of the runners (included)
-├── figures/                    the figures of the paper (included)
-├── tables/                     the tables of the paper, as LaTeX and CSV (included)
-├── plot_figures.py             draws every figure from results/
-├── make_tables.py              writes every table from results/
-├── data/                       README.md (sources, terms, checksums) and download.py; the data are not included
-├── tests/                      pytest
-├── requirements.txt            minimum versions
-├── requirements-frozen.txt     exact versions used for the paper
-├── CITATION.cff
-└── LICENSE
+raw (uncentred):     sum_{i in B} (Z_i - pi) Y_i
+adjusted (centred):  sum_{i in B} (Z_i - pi) (Y_i - mean_B(Y))
 ```
 
-## Installation
+Both statistics use the same original outcomes, assignments and Monte Carlo draws. No OLS fit enters
+this comparison. The API and the real-data analyses use the centred statistic. In the supplementary
+stress and two-region diagnostics, the legacy field `raw` means the centred statistic on the original
+outcome. Independent OLS residuals are labelled `indep` in stress and `adjusted` in the two-region
+records; stress also includes an `insample` OLS branch. The main comparison carries explicit statistic
+labels; the separate two-region runner and aggregation checks reject mixing the two conventions.
+In-sample OLS in the stress experiment is a diagnostic and does not inherit the local-null validity
+guarantee of the main statistic.
+
+The default candidate domain is **1, ..., n**. Exact descending search stops at the largest
+non-rejected size: all greater integer sizes have been checked, and smaller sizes cannot change the
+maximum. The evaluated path therefore need not contain n entries. The returned `bound` and
+`certificate` coincide for this search. Bisection and its Gaussian warm start also query integer sizes,
+but require the paper's monotonicity condition; they can return a different bound from descending
+search. They are retained for the computational comparisons, not used for the new primary bounds.
+An explicitly requested `grid='paper'` or `--grid paper` reproduces the historical sparse-grid option;
+it is not the default or the basis of the revised results.
+
+## Installation and quick start
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate               # Windows: .venv\Scripts\activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt         # or: pip install -r requirements-frozen.txt (versions of the paper)
-pytest -q                               # about 20 seconds the first time, while numba compiles the kernels
+source .venv/bin/activate
+python -m pip install -r requirements-frozen.txt
+python -m pytest -q
 ```
 
-Run all commands from the repository root. The compiled kernels use all available cores (in containers,
-no more than the CPU quota); set `NUMBA_NUM_THREADS` to change this.
-
-## Quick start
+`requirements.txt` lists minimum versions; `requirements-frozen.txt` records the environment of the
+paper. Run commands from the repository root. The kernels use numba; `NUMBA_NUM_THREADS` controls the
+thread count, subject to the available CPU quota. The simulation workers restrict inner thread pools.
 
 ```python
 import numpy as np
@@ -66,153 +56,195 @@ import zeroreach
 
 rng = np.random.default_rng(0)
 n = 1000
-W = rng.uniform(size=n)                                   # pre-treatment covariate
+W = rng.uniform(size=n)
 Z = np.zeros(n, dtype=int)
-Z[rng.choice(n, n // 2, replace=False)] = 1               # completely randomized assignment
-tau = np.where(np.abs(W - 0.5) < 0.05, 0.0, 1.0)          # no effect for units with W near 0.5
-Y = 2 * W + rng.normal(scale=0.5, size=n) + tau * Z
-
-res = zeroreach.upper_bound(W, Y, Z, alpha=0.05, M=1000, seed=1)
-print(res['bound'], res['first_rejected'], res['certificate'])   # 150 200 199
+Z[rng.choice(n, n // 2, replace=False)] = 1
+Y = 2 * W + rng.normal(scale=0.5, size=n) + Z * (np.abs(W - 0.5) >= 0.05)
+result = zeroreach.upper_bound(W, Y, Z, alpha=0.05, M=1000, seed=1)
+print(result['bound'], result['certificate'])
 ```
 
-The largest zero-effect block here has 93 units. On the 5% grid the bound is 150 units; the next searched
-length, 200, is rejected, so 199 bounds the size over all integer lengths. `res['region']` marks the units
-covered by blocks of length 150 that are not rejected; these are descriptive, not a confidence set for
-the location of a zero-effect region. A two-column `W` gives nearest-neighbour regions; `grid='all'`
-searches every size with the descending search; `draws=` takes randomization draws from another design.
+The default is `grid='all'`. A two-column W selects nearest-neighbour regions; `draws=` accepts
+assignments sampled from another design, and `strata=` requests randomization within strata.
+`result['region']` marks the union at the reported size in the original unit order.
 
-## Reproduce the figures and tables from the included results
+## Repository layout
 
-```bash
-python plot_figures.py      # figures/ (a few seconds)
-python make_tables.py       # tables/
+```text
+zeroreach/       shared/conditional tests, search, randomization, designs, data readers, summaries
+runners/        main centering comparison, separate two-region diagnostic, additional simulations,
+                timings, real-data runs and the specialized full-integer GGL search
+results/        compact per-repetition simulation records, configuration, real-data summaries,
+                stability checks and display aggregates
+figures/        manuscript figure assets
+tables/         numerical tables in CSV and LaTeX
+plot_figures.py regenerate figures from retained results
+make_tables.py  regenerate tables from retained results
+data/           provider instructions, checksums and acquisition script; raw data are ignored
+tests/          statistical oracles, search/configuration checks and representative result checks
 ```
 
-With the versions in `requirements-frozen.txt` the figures are identical to those in the paper; with
-other matplotlib versions the layout can differ by a few pixels.
+Main calibration inputs are in `results/centering_comparison/full_integer/calibration/centre10/`.
+The two-region diagnostic is in `results/calibration/two_regions/`. Completed runs are kept distinct
+from the `results/smoke/` and `results/paper_grid_reproduction/` outputs.
 
-## Figures and tables of the paper
-
-Numbers follow the arXiv version; the Biometrika version moves some of them to the Supplementary
-Material (prefix S). Status: *covered* means that the command regenerates the result from the
-repository alone; *needs data* that it needs the public data of `data/README.md` first.
-
-| arXiv | Biometrika | Content | Files | Command | Status |
-|---|---|---|---|---|---|
-| Fig. 1 | Fig. 1 | Noy-Zhang writing experiment | `fig_real_noy_regions.pdf` | `run_real_data.py --dataset noy --stability` | needs data (redrawn from results/) |
-| Table 1 | Table 1 | Computational costs | — | analytical | — |
-| Fig. 2 | Fig. 2 | Calibration, one covariate | `fig_d1_calibration_{ratio,coverage}.pdf` | `run_calibration.py --design centre10` | covered |
-| Fig. 3 | Fig. S5 | Calibration, two covariates | `fig_d2_calibration_{ratio,coverage}.pdf` | same | covered |
-| Fig. 4, Table 5 | Fig. S6, Table S4 | Rate of convergence | `fig_rate_of_convergence.pdf`, `rates.tex` | `run_supplementary.py --experiment rates` | covered |
-| Fig. 5 | Fig. S7 | Computation time | `fig_d{1,2}_computation_time.pdf` | `run_timing.py --experiment methods ...` | covered (machine dependent) |
-| Figs 6-7 | Figs S8-S9 | Region displays, n = 7000 | `fig_d{1,2}_regions_n7000.pdf` | `run_calibration.py --design centre10` | covered |
-| Fig. 8 | Fig. 3 | Gerber-Green-Larimer | `fig_real_ggl_regions.pdf` | `run_real_data.py --dataset ggl --robustness` | needs data (redrawn from results/) |
-| Fig. 9, Table 2 | Fig. S10, Table S1 | ACTG 175 | `fig_real_actg175_regions.pdf`, `actg_twoarm.tex` | `run_real_data.py --dataset actg --stability --two-covariates` | needs data (redrawn from results/) |
-| Fig. 10 | Fig. S11 | ACTG 175, two covariates | `fig_real_actg175_2d_regions.pdf` | same | needs data |
-| Fig. 11 | Fig. S1 | Boundary geometry (schematic) | `knn_boundary_cap.pdf` | drawn by the authors, not generated from data | — |
-| Fig. 12, Table 3 | Fig. S2, Table S2 | Validity stress tests | `fig_coverage_stress.pdf`, `stress.tex` | `run_supplementary.py --experiment stress` | covered |
-| Table 4 | Table S3 | Two zero-effect regions | `two_regions.tex` | `run_calibration.py --design two_regions` | covered |
-| Fig. 13, Table 6 | Fig. S3, Table S5 | Warm start and M | `fig_warm_start_vs_M.pdf`, `warm_start.tex` | `run_timing.py --experiment warm_start` | covered (machine dependent) |
-| Table 7 | Table S6 | Dispersed and cancelling effects | `dispersed.tex` | `run_supplementary.py --experiment dispersed` | covered |
-| Table 8 | Table S7 | Two-sided statistic | `two_sided.tex` | `run_supplementary.py --experiment two_sided` | covered |
-| Table 9 | Table S8 | Shared and conditional tests | `shared_vs_conditional.tex` | `run_supplementary.py --experiment shared_vs_conditional` | covered |
-| Fig. 14, Table 10 | Fig. S4, Table S9 | Effect size | `fig_effect_size.pdf`, `effect_size.tex` | `run_supplementary.py --experiment effect_size` | covered |
-
-The real-data figures are redrawn from the aggregates in `results/real_data/` (counts behind the
-histograms, bounds, p-value paths), so `plot_figures.py` needs no data; recomputing those aggregates
-needs the data. Figure 10 shows unit-level points and is redrawn only after the ACTG 175 analysis has
-been run locally. The appendix notes on the JTPA and RAND Health Insurance experiments report no numbers
-and are not part of this repository.
-
-## Running the experiments
-
-Every runner has a `--smoke` option that runs a few small tasks in seconds and writes to `results/smoke/`.
-The simulation runners write one record per task under `<out>/records/` (skipped if it exists, so a run
-can be resumed or split across machines) and collect them into `details.csv` (and `summary.csv`) at the
-end. CPU hours below are those of our runs.
+## Regenerate figures and tables without rerunning experiments
 
 ```bash
-# Section 6.2, 6.5 and Appendix H.2: 9 sample sizes x 2 dimensions x 200 repetitions per design
-python runners/run_calibration.py --design centre10        # about 10 CPU hours
-python runners/run_calibration.py --design two_regions     # about 9 CPU hours
+python plot_figures.py
+python make_tables.py
+```
 
-# Section 6.3 and Appendix H (one process per core, NUMBA_NUM_THREADS=1 per process is set automatically)
-python runners/run_supplementary.py --experiment rates                  # about 76 CPU hours
-python runners/run_supplementary.py --experiment stress                 # about 13 CPU hours
-python runners/run_supplementary.py --experiment effect_size            # about 12 CPU hours
-python runners/run_supplementary.py --experiment shared_vs_conditional  # about 3 CPU hours
-python runners/run_supplementary.py --experiment two_sided              # under 1 CPU hour
-python runners/run_supplementary.py --experiment dispersed              # under 1 CPU hour
+The included compact simulation records retain one row per repetition, with the bounds, coverage,
+truth, seeds and configuration needed for aggregation. Large evaluated-p-value paths and checkpoint
+files are retained separately by the authors, rather than included in this bundle. The source hashes
+and compact-file mapping are recorded in `results/presentation_manifest.json`. Full paths can be
+regenerated by the experiment runners. A compact summary rebuild and a from-scratch randomization
+run are different operations.
 
-# Section 6.4: one search, one dimension and one n per call; shared searches on 10 datasets
+All statistical plots except the ACTG two-covariate scatter can be redrawn from the included aggregate
+or synthetic inputs. The scatter uses individual-level covariates: its final PDF is included, but
+redrawing it requires the provider data and a local two-covariate run. Without the ignored local
+arrays, the figure script explicitly preserves that supplied PDF.
+It does not reconstruct individual observations from aggregates. The boundary-geometry schematic is
+an author-drawn asset, not an output of the numerical experiments. After obtaining and checking the
+provider data, rebuild the scatter in a new ignored output directory:
+
+```bash
+python runners/run_real_data.py --dataset actg --two-covariates-only --out results/real_data/actg/local/scatter_rerun
+python plot_figures.py --only real --actg-scatter-input results/real_data/actg/local/scatter_rerun/local/two_covariates_points.npz
+```
+
+The plot checks the supplied arrays against the retained result summary. The table below lists analysis
+options; the complete commands further below give fresh output directories for real-data reruns.
+
+| Current arXiv item | Content | Figure/table files | From-scratch runner |
+|---|---|---|---|
+| Figure 1 | AI-assisted writing | `fig_real_noy_regions.pdf` | `run_real_data.py --dataset noy --stability` |
+| Table 1 | Computational costs | Analytical table in manuscript | Not a numerical experiment |
+| Figure 2 | Non-rejected regions, both dimensions | `fig_d{1,2}_regions_n7000.pdf` | `run_calibration.py` |
+| Figure 3 | Centring comparison, coverage and bound | `fig_d{1,2}_calibration_{coverage,ratio}.pdf` | `run_calibration.py` |
+| Figure 4 | Computational time | `fig_d{1,2}_computation_time.pdf` | `run_timing.py --experiment methods ...` |
+| Figure 5 | Gerber–Green–Larimer | `fig_real_ggl_regions.pdf` | `run_ggl_integer.py` (below) |
+| Figure 6, Table 2 | ACTG one covariate | `fig_real_actg175_regions.pdf`, `actg_twoarm.*` | `run_real_data.py --dataset actg --stability` |
+| Figure 7 | ACTG two covariates | `fig_real_actg175_2d_regions.pdf` | `run_real_data.py --dataset actg --two-covariates` |
+| Figure 8, Table 5 | Convergence rates | `fig_rate_of_convergence.pdf`, `rates.*` | `run_supplementary.py --experiment rates` |
+| Figure 9 | Boundary geometry | `knn_boundary_cap.pdf` | Author-drawn schematic |
+| Figure 10, Table 3 | Stress designs | `fig_coverage_stress.pdf`, `stress.*` | `run_supplementary.py --experiment stress` |
+| Table 4 | Two zero-effect regions | `two_regions.*` | `run_two_regions.py` |
+| Figure 11, Table 6 | Gaussian warm start and draw count | `fig_warm_start_vs_M.pdf`, `warm_start.*` | `run_timing.py --experiment warm_start` |
+| Table 7 | Dispersed/cancelling effects | `dispersed.*` | `run_supplementary.py --experiment dispersed` |
+| Table 8 | Two-sided statistic | `two_sided.*` | `run_supplementary.py --experiment two_sided` |
+| Table 9 | Shared versus conditional tests | `shared_vs_conditional.*` | `run_supplementary.py --experiment shared_vs_conditional` |
+| Figure 12, Table 10 | Effect size | `fig_effect_size.pdf`, `effect_size.*` | `run_supplementary.py --experiment effect_size` |
+
+Real-data headline bounds from the included summaries are:
+
+| Analysis | Sample size | Upper bound |
+|---|---:|---:|
+| GGL, household mean age | 119999 | 4286 (3.6%) |
+| ACTG, one covariate: 20-week count / change | 1054 | 134 / 149 (12.7% / 14.1%) |
+| ACTG, two covariates: 20-week count / change | 1054 | 228 / 294 (21.6% / 27.9%) |
+| Writing quality | 352 | 90 (25.6%) |
+| Completion time | 353 | 65 (18.4%) |
+
+The GGL analysis uses the recorded within-cell assignment law. ACTG assumes complete randomization
+within its three stated strata; the writing analysis assumes complete randomization within each
+analysed sample. Reported location displays and post-selection mean differences remain descriptive.
+
+## Run experiments from scratch
+
+These commands can require substantial CPU time, especially full-integer GGL and conditional
+randomization. Use `--smoke` on the simulation and timing runners for small checks.
+Existing record identities and statistic configurations are checked before reuse; use a new `--out`
+for a different configuration. Large simulation records are ignored by Git.
+
+```bash
+# Main comparison: same Y, Z and randomization draws; only centring changes.
+python runners/run_calibration.py --design centre10
+# Separate supplementary diagnostic; the paper table reports centred original outcomes.
+python runners/run_two_regions.py
+
+python runners/run_supplementary.py --experiment stress
+python runners/run_supplementary.py --experiment dispersed
+python runners/run_supplementary.py --experiment two_sided
+python runners/run_supplementary.py --experiment shared_vs_conditional
+# These already used all integer sizes and were retained in this revision.
+python runners/run_supplementary.py --experiment rates
+python runners/run_supplementary.py --experiment effect_size
+
 python runners/run_timing.py --experiment methods --dimension 1 --n 5000 --method shared_descending
 python runners/run_timing.py --experiment methods --dimension 1 --n 1000 --method conditional_descending --repeat 3
+python runners/run_timing.py --experiment methods --dimension 2 --n 5000 --method shared_bisection
+python runners/run_timing.py --experiment methods --dimension 2 --n 5000 --method shared_gaussian_bisection
+python runners/run_timing.py --collect --experiment methods
 python runners/run_timing.py --experiment warm_start
-python runners/run_timing.py --collect --experiment methods             # collect the records into details.csv
 
-# Sections 1, 6.7 and 6.8 (data in data/raw/, see data/README.md)
-python runners/run_real_data.py --dataset ggl --robustness              # a few minutes with 32 threads
-python runners/run_real_data.py --dataset actg --stability --two-covariates
-python runners/run_real_data.py --dataset noy --stability
+# Obtain provider data first, using data/README.md.
+python runners/run_real_data.py --dataset actg --stability --two-covariates --out results/real_data/actg/local/rerun
+python runners/run_real_data.py --dataset noy --stability --out results/real_data/noy/local/rerun
 ```
 
-The conditional descending search is slow by design (Table 1): one run took 306 CPU hours in one
-dimension and 1,097 CPU hours (46 CPU days) in two dimensions at n = 20,000; it saves a checkpoint every
-ten minutes and resumes from it. The timings of the paper are CPU times on AMD EPYC 7J13 processors with
-24 threads (one dimension) and on Intel Xeon Platinum 8358 processors (two dimensions; 50 threads for the
-shared searches, 16 to 50 for the conditional search, whose longest runs were resumed from checkpoints).
+The real-data commands write to fresh ignored directories and reject existing outputs. They preserve
+the supplied summaries; compare rerun summaries before replacing any archived result. Use another
+new `--out` if the example directory already exists.
 
-## Paper names and code names
+For the full timing series, use both dimensions and n = 1000, 5000, 10000, 15000, 20000 for all four
+methods. Shared methods use ten datasets per setting. Conditional descending uses one dataset per
+setting, timed three times at n = 1000 and once at larger n. The original CPU times depend on the
+reported processor and thread settings; a new machine should not be expected to reproduce them.
 
-| Paper | Code |
-|---|---|
-| shared tests, descending search / bisection / bisection with Gaussian warm start | `search.Shared1D`, `search.Shared2D` with `search.descending`, `search.bisection(warm=False/True)`; `shared_descending`, `shared_bisection`, `shared_gaussian_bisection` |
-| conditional tests (computed from scratch), descending search | `search.Cond1D`, `search.Cond2D`; `conditional_descending` |
-| centred statistic T_B; two-sided statistic \|T_B\| | `kernels` (all evaluators); `search.numpy_grid_pvalues(two_sided=True)` |
-| 5%-of-n grid; tail envelope; r* and the certificate r* - 1 | `grids.paper_grid`, `grids.invert_path` (`grid_bound`, `first_rejected`, `certificate`) |
-| raw outcome; adjustment with an independent calibration sample; in-sample adjustment | `y` (`raw`); `adj_indep` (`adjusted`); `adj_insample` |
-| zero-effect region of the calibration: the 10% of units nearest the centre | `designs.generate(zero='centre10')` |
-| two zero-effect regions (20% and 10%); strip; disc used for timing | `zero='two_regions'`, `'strip20'`, `'circle'` |
-| constant effect; effect growing with the distance | `effect='const'`, `'grad1'` |
-| normal, t3, heteroskedastic, binary, opposite signs, stratified (Appendix H.1) | `scenario='S0'`, ..., `'S5'` |
+### Full-integer GGL search
 
-## Reproducibility notes
+The specialized runner has three stages. The following is a single-range reproduction of the primary
+result; it is an expensive full experiment, not a smoke command.
 
-- **Seeds.** Repetition r of a simulation uses the data seed 1 + r, the assignment seed 10001 + r, the
-  Monte Carlo seed 20001 + 1000 r and, for the independent calibration sample, 20260619 + 10^6 s +
-  600000 + r, where s indexes the sample size (`designs.seed_plan`). Conditional tests use per-region
-  streams based on 20260929 + 1000 r. The real-data analyses use M = 5000 draws with seeds 20260526
-  (Gerber-Green-Larimer), 20260520 (ACTG 175) and 20260918 (Noy-Zhang); their checks use the seeds and
-  Monte Carlo sizes stated in the paper.
-- **Exactness.** The kernels use compensated sums and resolve near ties by comparing the assignments
-  exactly, so results do not depend on the number of threads. We reran repetitions 0-9 of every
-  simulation cell and all real-data analyses with this code, and they reproduced the stored results
-  exactly; `tests/test_results.py` reruns a few tasks.
-- **Least squares.** The adjusted outcome uses a small least-squares fit; different BLAS libraries can
-  change the coefficients in the last bit. If a machine returns wrong float64 results with OpenBLAS (the
-  runners check this before starting), set `OPENBLAS_CORETYPE=SKYLAKEX`.
-- **Timing** depends on the processor, the number of threads and the load of the machine; the shape of
-  the curves and the ordering of the methods are what the paper reports.
+```bash
+python runners/run_ggl_integer.py prepare --data-dir data/raw --shared results/real_data/ggl/local/shared
+python runners/run_ggl_integer.py scan --shared results/real_data/ggl/local/shared --out results/real_data/ggl/local/parts/all --lo 1 --hi 119999
+python runners/run_ggl_integer.py merge --shared results/real_data/ggl/local/shared --parts results/real_data/ggl/local/parts/all --out results/real_data/ggl/local/rerun
+```
 
-## Data
+For parallel execution, partition [1, 119999] into disjoint contiguous ranges, write each scan to a
+separate part directory, and pass every part to `merge --parts`. Merge rejects gaps, overlaps,
+incomplete parts and incompatible run identities. A range can stop once its largest non-rejected
+size is found; the merged maximum is still exact without a p-value monotonicity assumption.
+For the fifteen sensitivity configurations, use seeds 20260526, 20260527 and 20260528 with each of
+`A_primary`, `B_reverse`, `C_household_size`, `D_hash1`, `E_hash2`, choosing a separate shared/parts/output
+location for each. Same-seed assignments can be reused with `prepare --reuse-shared` after validation.
+The old `run_real_data.py --dataset ggl` entry point supports only explicit `--grid paper`; it is not
+the primary full-integer analysis.
 
-See [data/README.md](data/README.md): the Gerber-Green-Larimer experiment (Yale ISPS Data Archive, study
-D001), ACTG 175 (UCI Machine Learning Repository, doi:10.24432/C5ZG8F) and the Noy-Zhang writing
-experiment (OSF xd7qw). No data are redistributed here.
+## Reproducibility details
 
-## Citation
+- Simulation repetition r uses data seed 1+r, assignment seed 10001+r and Monte Carlo seed
+  20001+1000r. Independent calibration and conditional tests use their separately recorded streams.
+- Primary real-data seeds are 20260526 (GGL), 20260520 (ACTG) and 20260918 (writing), with M = 5000.
+  ACTG and writing stability files retain the additional seeds and draw counts stated in the paper.
+- The kernels use compensated sums and explicit numerical tie handling. Tests compare them with
+  independently calculated statistics and check search identities. Identical seeds alone do not
+  guarantee bitwise equality across software/BLAS environments; retain the supplied numerical rules.
+- Main centring requires no fitted linear model. Supplementary OLS diagnostics can depend on the
+  linear-algebra environment. The runners check for an incompatible BLAS result before expensive work;
+  `OPENBLAS_CORETYPE=SKYLAKEX` is an available workaround on the affected machines.
+- The fixed sample sizes and 200 main repetitions were retained; the region displays use the
+  preselected repetition 0 at n = 7000. Plotted coverage intervals are 95% Wilson intervals.
+- `data/raw/` and `results/real_data/*/local/` are ignored. Never add provider data, GGL prepared
+  assignment arrays or ACTG individual-level scatter arrays to the repository.
 
-If you use this code, please cite the paper (the reference will be completed on publication):
+## Data, citation and license
+
+[data/README.md](data/README.md) gives the provider terms and checksums for GGL (Yale ISPS D001),
+ACTG 175 (UCI, DOI 10.24432/C5ZG8F) and the Noy–Zhang writing study (OSF xd7qw). Provider data are not
+redistributed. The JTPA/RAND notes in the manuscript are historical design diagnostics with no reported
+numerical bounds and are not included as revised full-integer results.
 
 ```bibtex
 @article{li2026reach,
-  title  = {The reach of treatment effects: randomization inference for zero-effect regions},
+  title = {The Reach of Treatment Effects: Randomization Inference for Zero-Effect Regions},
   author = {Li, Pengyu and Zhang, Yao},
-  year   = {2026}
+  year = {2026}
 }
 ```
-
-## License
 
 The code is released under the MIT License; see [LICENSE](LICENSE).

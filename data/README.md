@@ -1,9 +1,11 @@
 # Data
 
-The three experiments of Sections 1, 6.7 and 6.8 use public data that are **not** redistributed here. Put the
-files under `data/raw/` as below; `runners/run_real_data.py` reads them from there (or from `--data-dir`).
-Everything stored under `results/real_data/` is aggregated (bounds, p-value paths, counts behind the
-displays); no unit-level value is part of this repository.
+The three real-data experiments use provider data that are **not** redistributed here. Put the files
+under `data/raw/` as below; the real-data runners read them from there (or from `--data-dir`).
+The redistributed files under `results/real_data/` contain aggregate summaries, stability results and
+display inputs; compact summaries omit the full evaluated p-value paths. Raw data and local arrays
+derived from individual observations are excluded by `.gitignore`, including the ACTG scatter inputs
+and GGL prepared assignments in `results/real_data/*/local/`.
 
 ```text
 data/raw/
@@ -37,6 +39,7 @@ Follow each provider's terms of use. The analysed samples are built by `zeroreac
 - **ACTG 175.** Arms 0 and 1 (1,054 patients, 522 treated), ordered by baseline CD4 count `cd40` with
   ties broken by `pidnum`; outcomes `cd420` and `cd420 - cd40`; randomization within `strat`.
 - **Noy–Zhang.** The cleaning steps of the authors' code (`2 - clean.do`): finished and consenting
-  participants, the six manual exclusions, both quality-check waves, and participants graded before
-  they were tasked. Grades are exact means of the eligible original grades. The analysed groups are the
+  participants, the six manual exclusions, both quality-check waves, and exclusion of participants
+  with a recorded grader session before the date of their own task survey. Grades are exact means of
+  the eligible original grades. The analysed groups are the
   linear and convex incentive groups (352 participants for the grade of the second task, 353 for its time).

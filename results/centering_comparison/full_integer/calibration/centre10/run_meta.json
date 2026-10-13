@@ -1,0 +1,58 @@
+{
+  "experiment": "calibration",
+  "design": "centre10",
+  "dims": [
+    1,
+    2
+  ],
+  "sizes": [
+    200,
+    400,
+    600,
+    800,
+    1000,
+    4000,
+    7000,
+    10000,
+    13000
+  ],
+  "repetitions": 200,
+  "M": 500,
+  "alpha": 0.05,
+  "run_config": {
+    "schema_version": 3,
+    "design": "centre10",
+    "grid_mode": "all",
+    "M": 500,
+    "alpha": 0.05,
+    "raw_statistic": "uncentered_assignment_covariance",
+    "adjusted_statistic": "within_region_centered_covariance",
+    "outcome_source": "original_y_for_both_statistics",
+    "search": "exact_descending",
+    "candidate_sizes": "1..n"
+  },
+  "grid": "all integer sizes 1..n",
+  "compatibility_aliases": "*_grid_bound equals *_bound; *_grid_covers uses the configured candidate set",
+  "scores": [
+    "raw: sum((Z-pi)*Y)",
+    "adjusted: sum((Z-pi)*(Y-Ybar_B))"
+  ],
+  "ols_adjustment": false,
+  "centered_reused_records": 3600,
+  "display_selection": "preselected rep=0 in both dimensions at n=7000",
+  "timing_scope": "per-record search and optional display; reused centered search costs excluded",
+  "seeds": "designs.seed_plan(rep, size_index): data 1+rep, assignment 10001+rep, Monte Carlo 20001+1000 rep, calibration 20260619 + 10^6 size_index + 600000 + rep",
+  "environment": {
+    "python": "3.11.2",
+    "numpy": "2.0.2",
+    "scipy": "1.13.1",
+    "numba": "0.67.0",
+    "numba_threads": 1,
+    "cpu": "Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz",
+    "omp_threads": "1",
+    "openblas_threads": "1"
+  },
+  "archive_format": "compact-summary-v1",
+  "input_artifact_sha256": "907d611373132d20381fc3fe14c5cfd8f8d49cc210cdb9aee9ad7a6449bd519b",
+  "pvalue_paths_included": false
+}

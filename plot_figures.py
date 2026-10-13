@@ -1,12 +1,13 @@
 """Draw every figure of the paper from the files in results/ (a few minutes; no experiment is rerun).
 
-usage: python plot_figures.py [--out figures] [--only NAME ...]
-Figure 11 (Appendix C) is a schematic drawn by the authors; it is not generated from data and is kept
-as figures/knn_boundary_cap.pdf. Figure 10 shows unit-level ACTG 175 data: it is redrawn only when
+usage: python plot_figures.py [--out figures] [--only NAME ...] [--calibration-results DIR]
+The boundary-cap schematic is authored separately and kept as figures/knn_boundary_cap.pdf.
+The ACTG 175 two-dimensional scatter shows unit-level data: it is redrawn only when
 results/real_data/actg/local/ exists (python runners/run_real_data.py --dataset actg --two-covariates).
 """
 import argparse
 import math
+import shutil
 import sys
 from pathlib import Path
 
@@ -31,6 +32,7 @@ SIZES = SU.SIZES
 K0_FRACTION = 0.10
 LEG_REGION = Patch(facecolor=BLUE, label='units in non-rejected regions (union)')
 LEG_OTHER = Patch(facecolor=NEUTRAL, label='other units')
+ACTG_SCATTER_INPUT = None
 
 
 def pieces(path):
@@ -40,50 +42,59 @@ def pieces(path):
 
 
 # ------------------------------------------------------------------------------------------ Figures 2-3
-CALIBRATION_DISPLAY_SIZES = tuple(n for n in SIZES if n <= 10000)
+CALIBRATION_RATIO_SIZES = tuple(n for n in SIZES if n <= 7000)
+CALIBRATION_COVERAGE_SIZES = tuple(n for n in SIZES if 1000 <= n <= 13000)
 
 
-def _axes_style(ax):
+def _axes_style(ax, panel):
     ax.grid(axis='y', color=GRID, linewidth=0.6)
     ax.set_axisbelow(True)
     ax.set_xscale('linear')
     ax.minorticks_off()
-    ax.set_xticks([200, 1000, 4000, 7000, 10000], ['.2', '1', '4', '7', '10'])
-    ax.set_xticks([400, 600, 800], minor=True)
-    ax.set_xlim(0, 10400)
+    if panel == 'ratio':
+        ax.set_xticks([200, 1000, 4000, 7000], ['.2', '1', '4', '7'])
+        ax.set_xticks([400, 600, 800], minor=True)
+        ax.set_xlim(0, 7280)
+    elif panel == 'coverage':
+        ax.set_xticks([1000, 4000, 7000, 10000, 13000], ['1', '4', '7', '10', '13'])
+        ax.set_xlim(520, 13480)
+    else:
+        raise ValueError('Unknown calibration panel: ' + panel)
     ax.set_xlabel('sample size $n$ (thousands)')
 
 
 def fig_calibration(out):
-    """Figures 2 and 3: calibration results through n=10000 on a linear axis.
+    """Figures 2 and 3: panel-specific sample ranges on linear axes.
 
-    The archived n=13000 results remain available; only these displays omit them.
+    Bound ratios show n<=7000; coverage shows 1000<=n<=13000. All nine
+    sample sizes remain in the archived results and experiment configuration.
     """
     rows = SU.calibration('centre10')
-    lab = {'raw': 'raw outcome', 'adjusted': 'independent OLS adjustment'}
+    lab = {'raw': 'raw (uncentred)', 'adjusted': 'adjusted (centred)'}
     col = {'raw': BLUE, 'adjusted': ORANGE}
     mk = {'raw': 'o', 'adjusted': 's'}
     for dim in (1, 2):
-        sel = [r for r in rows if r['dimension'] == dim and r['n'] in CALIBRATION_DISPLAY_SIZES]
+        sel_ratio = [r for r in rows if r['dimension'] == dim and r['n'] in CALIBRATION_RATIO_SIZES]
+        sel_coverage = [r for r in rows if r['dimension'] == dim and r['n'] in CALIBRATION_COVERAGE_SIZES]
         fig, ax = plt.subplots(figsize=(3.3, 2.6))
         for s in ('raw', 'adjusted'):
-            r = sorted((x for x in sel if x['score'] == s), key=lambda x: x['n'])
+            r = sorted((x for x in sel_ratio if x['score'] == s), key=lambda x: x['n'])
             ax.plot([x['n'] for x in r], [x['mean_bound'] for x in r],
                     marker=mk[s], ms=3.2, color=col[s], label=lab[s])
         sym = 'L' if dim == 1 else 'K'
         ax.axhline(K0_FRACTION, ls='--', color=INK, lw=1.0, label=f'true ${sym}_0/n={K0_FRACTION:.2f}$')
         ax.set_ylabel(r'mean $\widehat L_{n,0}^{\,U}/n$' if dim == 1 else r'mean $\widehat K_{0}^{\,U}/n$')
-        top = max(x['mean_bound'] for x in sel)
+        top = max(x['mean_bound'] for x in sel_ratio)
         ax.set_ylim(0, max(0.3, math.ceil((top + 0.02) * 20) / 20))
-        _axes_style(ax)
-        ax.legend(frameon=False, loc='lower right')
-        fig.savefig(out / f'fig_d{dim}_calibration_ratio.pdf')
+        _axes_style(ax, 'ratio')
+        ax.legend(frameon=False, loc='upper right')
+        fig.savefig(out / f'fig_d{dim}_calibration_ratio.pdf', metadata={'CreationDate': None, 'ModDate': None})
         plt.close(fig)
         fig, ax = plt.subplots(figsize=(3.3, 2.6))
         # A small fixed offset in points separates the methods without growing with n.
         off = {'raw': -0.65, 'adjusted': 0.65}
         for s in ('raw', 'adjusted'):
-            r = sorted((x for x in sel if x['score'] == s), key=lambda x: x['n'])
+            r = sorted((x for x in sel_coverage if x['score'] == s), key=lambda x: x['n'])
             x = np.array([q['n'] for q in r])
             y = np.array([q['coverage'] for q in r])
             err = np.array([[q['coverage'] - q['wilson_lo'] for q in r], [q['wilson_hi'] - q['coverage'] for q in r]])
@@ -95,9 +106,9 @@ def fig_calibration(out):
         ax.axhline(0.95, ls='--', color=INK, lw=1.0, label='nominal 0.95')
         ax.set_ylim(0.6, 1.0)
         ax.set_ylabel('empirical coverage of $L_0$' if dim == 1 else 'empirical coverage of $K_0$')
-        _axes_style(ax)
+        _axes_style(ax, 'coverage')
         ax.legend(frameon=False, loc='lower right')
-        fig.savefig(out / f'fig_d{dim}_calibration_coverage.pdf')
+        fig.savefig(out / f'fig_d{dim}_calibration_coverage.pdf', metadata={'CreationDate': None, 'ModDate': None})
         plt.close(fig)
 
 
@@ -135,7 +146,7 @@ def fig_rates(out):
     handles.append(Line2D([], [], color=INK2, ls=':', lw=1.0, label=r'theoretical slope $-1/(2\gamma)$'))
     fig.legend(handles=handles, loc='lower center', ncol=2, frameon=False, bbox_to_anchor=(0.5, -0.01), fontsize=7.5)
     fig.tight_layout(rect=(0, 0.13, 1, 1))
-    fig.savefig(out / 'fig_rate_of_convergence.pdf')
+    fig.savefig(out / 'fig_rate_of_convergence.pdf', metadata={'CreationDate': None, 'ModDate': None})
     plt.close(fig)
 
 
@@ -171,21 +182,32 @@ def fig_timing(out):
         for side in ('top', 'right'):
             ax.spines[side].set_visible(True)
         ax.legend(frameon=False, loc='lower center', bbox_to_anchor=(0.5, 1.02), ncol=2, fontsize=9, handlelength=3)
-        fig.savefig(out / f'fig_d{dim}_computation_time.pdf')
+        fig.savefig(out / f'fig_d{dim}_computation_time.pdf', metadata={'CreationDate': None, 'ModDate': None})
         plt.close(fig)
 
 
 # ------------------------------------------------------------------------------------------ Figures 6-7
 def fig_regions(out):
     """Figures 6 and 7: units in candidate regions of the reported size that are not rejected, n = 7000."""
+    from runners import run_calibration as C
+    records = SU.calibration_records()
     for dim in (1, 2):
         r = SU.display_rep(dim)
-        d = np.load(RES / 'calibration' / 'centre10' / f'display_d{dim}_n7000_rep{r}.npz')
+        d = np.load(SU.CALIBRATION_RESULTS / 'calibration' / 'centre10' / f'display_d{dim}_n7000_rep{r}.npz')
+        row = next(x for x in records if (x['dim'], x['n'], x['rep']) == (dim, 7000, r))
+        expected = dict(schema_version=C.SCHEMA_VERSION, raw_statistic=C.RAW_STATISTIC,
+                        adjusted_statistic=C.ADJUSTED_STATISTIC, grid_mode='all',
+                        input_sha256=row['input_sha256'], display_selection='preselected_rep_0',
+                        n=7000, raw_bound=row['raw_grid_bound'], adjusted_bound=row['adjusted_grid_bound'],
+                        raw_grid_bound=row['raw_grid_bound'], adjusted_grid_bound=row['adjusted_grid_bound'])
+        for key, value in expected.items():
+            if key not in d or d[key].item() != value:
+                raise ValueError(f'Incompatible region display: {key}; regenerate it with the revised runner')
         W, region, n = d['W'], d['region'], int(d['n'])
         names = [str(x) for x in d['region_names']]
         pcts = [f'{np.sum(region == name) / n:.0%}' for name in names]
         fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.9 if dim == 1 else 3.6))
-        for ax, score, title in zip(axes, ('raw', 'adjusted'), ('(a) raw outcome', '(b) independent OLS adjustment')):
+        for ax, score, title in zip(axes, ('raw', 'adjusted'), ('(a) raw (uncentred)', '(b) adjusted (centred)')):
             mask = d[score + '_mask'].astype(bool)
             b = int(d[score + '_grid_bound'])
             if dim == 1:
@@ -224,8 +246,12 @@ def fig_regions(out):
         leg_true = Line2D([], [], color=INK, ls='--', lw=1.0, label=label)
         fig.legend(handles=[LEG_REGION, LEG_OTHER, leg_true], loc='lower center', ncol=3, frameon=False,
                    bbox_to_anchor=(0.5, -0.06), fontsize=7.5)
+        if dim == 1:
+            fig.text(0.5, -0.105,
+                     'Histogram bins with at least 75% of units in the union are shown entirely blue.',
+                     ha='center', va='top', fontsize=7, color=INK2)
         fig.tight_layout(rect=(0, 0.06, 1, 1))
-        fig.savefig(out / f'fig_d{dim}_regions_n7000.pdf')
+        fig.savefig(out / f'fig_d{dim}_regions_n7000.pdf', metadata={'CreationDate': None, 'ModDate': None})
         plt.close(fig)
 
 
@@ -246,7 +272,7 @@ def fig_real(out):
     axes[1].set_ylabel('')
     fig.legend(handles=[LEG_REGION, LEG_OTHER], loc='lower center', ncol=2, frameon=False, bbox_to_anchor=(0.5, -0.06))
     fig.tight_layout(rect=(0, 0.06, 1, 1))
-    fig.savefig(out / 'fig_real_actg175_regions.pdf')
+    fig.savefig(out / 'fig_real_actg175_regions.pdf', metadata={'CreationDate': None, 'ModDate': None})
     plt.close(fig)
     gs = SU.real('ggl')
     gp = pieces(base / 'ggl' / 'display_pieces.csv')
@@ -267,7 +293,7 @@ def fig_real(out):
     ax.axvspan(31, 42, color=GRID, alpha=0.7, zorder=0, lw=0)
     fig.legend(handles=[LEG_REGION, LEG_OTHER], loc='lower center', ncol=1, frameon=False, bbox_to_anchor=(0.5, -0.02))
     fig.tight_layout(rect=(0, 0.12, 1, 1))
-    fig.savefig(out / 'fig_real_ggl_regions.pdf')
+    fig.savefig(out / 'fig_real_ggl_regions.pdf', metadata={'CreationDate': None, 'ModDate': None})
     plt.close(fig)
     noy = SU.real('noy')['outcomes']
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.9), sharey=True)
@@ -281,18 +307,35 @@ def fig_real(out):
     axes[1].set_ylabel('')
     fig.legend(handles=[LEG_REGION, LEG_OTHER], loc='lower center', ncol=2, frameon=False, bbox_to_anchor=(0.5, -0.06))
     fig.tight_layout(rect=(0, 0.06, 1, 1))
-    fig.savefig(out / 'fig_real_noy_regions.pdf')
+    fig.savefig(out / 'fig_real_noy_regions.pdf', metadata={'CreationDate': None, 'ModDate': None})
     plt.close(fig)
-    local = base / 'actg' / 'local' / 'two_covariates_points.npz'
+    local = ACTG_SCATTER_INPUT or base / 'actg' / 'local' / 'two_covariates_points.npz'
     if not local.exists():
-        print('Figure 10 kept as shipped (needs the ACTG 175 data; see data/README.md)')
+        shipped = REPO / 'figures' / 'fig_real_actg175_2d_regions.pdf'
+        if not shipped.exists():
+            raise FileNotFoundError('ACTG scatter requires either the shipped PDF or local provider-data arrays')
+        target = out / shipped.name
+        if target.resolve() != shipped.resolve():
+            shutil.copyfile(shipped, target)
+        print('ACTG two-dimensional scatter not regenerated: local unit-level arrays are absent; '
+              'the shipped PDF is retained. Obtain provider data, rerun ACTG into a fresh output directory, '
+              'then provide its local NPZ with --actg-scatter-input (see README.md).')
         return
     pts = np.load(local)
     two = SU.real('actg', 'two_covariates.json')
+    xy = pts['ranks']
+    if xy.shape != (two['n'], 2) or not np.isfinite(xy).all():
+        raise ValueError('ACTG scatter requires a finite n-by-2 array of normalized ranks')
+    if np.any((xy < 0) | (xy > 1)):
+        raise ValueError('ACTG scatter ranks must lie between zero and one')
+    for score in ('raw', 'change'):
+        mask = pts[score]
+        if (mask.shape != (two['n'],) or not np.isin(mask, [False, True]).all()
+                or int(mask.sum()) != two[score]['covered_units']):
+            raise ValueError('ACTG scatter arrays do not match the current result summary')
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.6))
     for ax, (score, title) in zip(axes, (('raw', '(a) 20-week CD4 count'), ('change', '(b) change in CD4 count from baseline'))):
         mask = pts[score].astype(bool)
-        xy = pts['ranks']
         ax.scatter(xy[~mask, 0], xy[~mask, 1], s=3, color=NEUTRAL, lw=0, rasterized=True)
         ax.scatter(xy[mask, 0], xy[mask, 1], s=3.5, color=BLUE, lw=0, rasterized=True)
         ax.set_aspect('equal')
@@ -301,11 +344,11 @@ def fig_real(out):
         ax.set_xlabel('normalized rank of baseline CD4')
         ax.set_ylabel('normalized rank of age')
         ax.set_title(title, loc='left')
-        annotate(ax, bound_lines(two[score]['grid_bound'], len(mask), sym=SYM_K), loc='upper left')
+        annotate(ax, bound_lines(two[score]['bound'], len(mask), sym=SYM_K), loc='upper left')
     fig.legend(handles=[LEG_REGION, LEG_OTHER], loc='lower center', ncol=2, frameon=False,
                bbox_to_anchor=(0.5, -0.04), fontsize=7.5)
     fig.tight_layout(rect=(0, 0.05, 1, 1))
-    fig.savefig(out / 'fig_real_actg175_2d_regions.pdf')
+    fig.savefig(out / 'fig_real_actg175_2d_regions.pdf', metadata={'CreationDate': None, 'ModDate': None})
     plt.close(fig)
 
 
@@ -316,7 +359,7 @@ N_STYLE = {200: (AQUA, 'o'), 1000: (BLUE, 's'), 4000: (ORANGE, '^')}
 
 
 def fig_stress(out):
-    """Figure 12: coverage and mean bound / n of the raw 5%-grid bound in six scenarios."""
+    """Coverage of the actual zero-effect interval and mean bound/n over all integer lengths."""
     e2 = SU.stress()
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.9))
     x = np.arange(len(SU.SCEN))
@@ -327,13 +370,15 @@ def fig_stress(out):
         rate = np.array([v['rate'] for v in cov])
         lo = rate - np.array([v['wilson'][0] for v in cov])
         hi = np.array([v['wilson'][1] for v in cov]) - rate
-        axes[0].errorbar(x + dx, rate, yerr=[lo, hi], fmt=mk, color=c, ms=4, capsize=2, lw=1.1, label=f'$n={n:,}$')
+        axes[0].errorbar(x + dx, rate, yerr=[lo, hi], fmt=mk, color=c, ms=4, capsize=2, lw=1.1)
         b = [e2[f'{s}/n{n}']['raw_grid']['bound_over_n'] for s in SU.SCEN]
-        axes[1].plot(x + dx, b, mk, color=c, ms=4.5, label=f'$n={n:,}$')
-    axes[0].axhline(0.95, color=INK2, ls='--', lw=0.9)
+        axes[1].plot(x + dx, b, mk, color=c, ms=4.5)
+    axes[0].axhline(0.95, color=INK2, ls='--', lw=0.9, label='nominal coverage: 0.95')
     axes[0].set_ylim(0.9, 1.005)
-    axes[0].set_ylabel('coverage')
-    axes[1].axhline(0.10, color=INK2, ls='--', lw=0.9)
+    axes[0].set_ylabel(r'coverage of $L_0$')
+    axes[0].legend(loc='lower left', frameon=False, fontsize=7.0)
+    axes[1].axhline(0.10, color=INK2, ls='--', lw=0.9, label='planted fraction: 0.10')
+    axes[1].legend(loc='upper left', frameon=False, fontsize=7.0)
     axes[1].set_ylim(0, 1.05)
     axes[1].set_ylabel(r'mean $\widehat{L}_{n,0}^{\,U}/n$')
     for ax, t in zip(axes, ('(a) coverage (Wilson 95% intervals)', '(b) reported length bound')):
@@ -344,10 +389,9 @@ def fig_stress(out):
         ax.set_title(t, loc='left')
     handles = [Line2D([], [], color=N_STYLE[n][0], marker=N_STYLE[n][1], ls='', ms=4.5, label=f'$n={n:,}$')
                for n in (200, 1000, 4000)]
-    handles.append(Line2D([], [], color=INK2, ls='--', lw=0.9, label=r'nominal level 0.95 / true $L_0/n=0.10$'))
-    fig.legend(handles=handles, loc='lower center', ncol=4, frameon=False, bbox_to_anchor=(0.5, -0.02), fontsize=7.5)
+    fig.legend(handles=handles, loc='lower center', ncol=3, frameon=False, bbox_to_anchor=(0.5, -0.02), fontsize=7.5)
     fig.tight_layout(rect=(0, 0.07, 1, 1))
-    fig.savefig(out / 'fig_coverage_stress.pdf')
+    fig.savefig(out / 'fig_coverage_stress.pdf', metadata={'CreationDate': None, 'ModDate': None})
     plt.close(fig)
 
 
@@ -382,7 +426,7 @@ def fig_warm(out):
                Line2D([], [], color=INK2, ls='--', marker='s', ms=4, lw=1.3, label='bisection with warm start')]
     fig.legend(handles=handles, loc='lower center', ncol=4, frameon=False, bbox_to_anchor=(0.5, -0.02), fontsize=7.5)
     fig.tight_layout(rect=(0, 0.08, 1, 1))
-    fig.savefig(out / 'fig_warm_start_vs_M.pdf')
+    fig.savefig(out / 'fig_warm_start_vs_M.pdf', metadata={'CreationDate': None, 'ModDate': None})
     plt.close(fig)
 
 
@@ -407,7 +451,7 @@ def fig_effect_size(out):
     ax.set_ylabel(r'mean overshoot $(\widehat{K}_0^{\,U}-K_0)_+/n$')
     ax.legend(frameon=False, fontsize=7.5)
     fig.tight_layout()
-    fig.savefig(out / 'fig_effect_size.pdf')
+    fig.savefig(out / 'fig_effect_size.pdf', metadata={'CreationDate': None, 'ModDate': None})
     plt.close(fig)
 
 
@@ -417,10 +461,19 @@ FIGURES = {'calibration': fig_calibration, 'rates': fig_rates, 'timing': fig_tim
 
 
 def main():
+    global ACTG_SCATTER_INPUT
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--out', type=Path, default=REPO / 'figures')
     ap.add_argument('--only', nargs='+', choices=sorted(FIGURES))
+    ap.add_argument('--calibration-results', type=Path, default=SU.CALIBRATION_RESULTS,
+                    help='Result root containing calibration/centre10 for the uncentred/centred comparison')
+    ap.add_argument('--actg-scatter-input', type=Path,
+                    help='Local two_covariates_points.npz from a matching ACTG replication; not distributed')
     a = ap.parse_args()
+    if a.actg_scatter_input is not None and not a.actg_scatter_input.is_file():
+        ap.error('--actg-scatter-input must name an existing local NPZ file')
+    ACTG_SCATTER_INPUT = a.actg_scatter_input
+    SU.CALIBRATION_RESULTS = a.calibration_results
     a.out.mkdir(parents=True, exist_ok=True)
     for name, f in FIGURES.items():
         if a.only and name not in a.only:

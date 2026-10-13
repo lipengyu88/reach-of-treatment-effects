@@ -2,18 +2,22 @@
 
 ggl   Gerber-Green-Larimer social-pressure experiment: households of the Neighbors and Control groups ordered
       by the mean age of their members (ties by cell, then household), the recorded design (permutation
-      of the assignment within cells), M = 5000 draws with seed 20260526, the 32 searched lengths of
-      Section 6.7. --robustness adds five tie-breaking rules and three seeds (Appendix F.1).
+      of the assignment within cells), M = 5000 draws with seed 20260526. This entry point retains only
+      the historical 32-length analysis behind --grid paper; use run_ggl_integer.py for the paper result.
+      --robustness adds the historical five tie-breaking rules and three seeds.
 actg  ACTG 175, arms 0 and 1, ordered by baseline CD4 count (ties by patient id), randomization within the
-      three strata, M = 5000 draws with seed 20260520, the 5% grid; raw 20-week CD4 count and its change
+      three strata, M = 5000 draws with seed 20260520, all integer sizes; raw 20-week CD4 count and its change
       from baseline. --stability repeats it for M in {500, 1000, 2000, 5000} and seeds 20260520-22;
       --two-covariates adds age as a second covariate (Section 6.8).
 noy   Noy-Zhang writing experiment: participants of the linear and convex incentive groups ordered by the
       grade of their first task, complete randomization within the analysed sample, M = 5000 draws with
-      seed 20260918, the 5% grid; grade of the second task and minus the time spent on it. --stability
+      seed 20260918, all integer sizes; grade of the second task and minus the time spent on it. --stability
       adds three seeds at M = 5000, three at M = 50000 and one at M = 200000 (Appendix F.3).
 
-The data are not included (data/README.md); outputs under results/real_data/<dataset> are aggregates only.
+The data are not included (data/README.md); shared outputs are aggregates only. The default all-integer
+destination is results/real_data/<dataset>; --grid paper uses results/paper_grid_reproduction/real_data/<dataset>.
+--grid paper reproduces the previous sparse-grid analyses; --grid all (default) uses exact descending
+search, with no monotonicity assumption. GGL's full-integer search uses its separate runner.
 usage: python runners/run_real_data.py --dataset actg [--data-dir data/raw] [--stability] [--two-covariates]
 """
 import os
@@ -37,7 +41,7 @@ from zeroreach import realdata as RD                  # noqa: E402
 from zeroreach import search as S                     # noqa: E402
 from zeroreach import kernels as K                    # noqa: E402
 from zeroreach.display import hist_pieces, mask_runs  # noqa: E402
-from zeroreach.grids import envelope_bound, ggl_grid, invert_path, paper_grid   # noqa: E402
+from zeroreach.grids import ggl_grid, invert_path, paper_grid   # noqa: E402
 from zeroreach.randomization import permutations_within_cells, sample_crd, sample_within_strata  # noqa: E402
 from zeroreach.utils import environment, write_json   # noqa: E402
 
@@ -140,19 +144,51 @@ def run_ggl(data_dir, out, robustness, nchunk):
 
 # ------------------------------------------------------------------------------------------------ ACTG
 ACTG_M, ACTG_SEED = 5000, 20260520
+ACTG_STABILITY = [(M, seed) for M in (500, 1000, 2000, 5000)
+                  for seed in (20260520, 20260521, 20260522)]
 
 
-def _actg_one(sub, z, strat, M, seed, primary):
+def _candidate_sizes(n, grid_mode):
+    if grid_mode == 'all':
+        return list(range(1, n + 1))
+    if grid_mode == 'paper':
+        return paper_grid(n)
+    raise ValueError(f'unknown grid mode: {grid_mode}')
+
+
+def _search_sizes(ev, n, grid_mode):
+    """Invert all candidates exactly; unvisited sizes below the bound cannot alter the maximum."""
+    grid = _candidate_sizes(n, grid_mode)
+    if grid_mode == 'all':
+        bound = int(S.descending(ev, n, ALPHA))
+        P = {int(k): float(v) for k, v in sorted(ev.cache.items())}
+        first = bound + 1 if bound < n else None
+        inv = dict(grid_bound=bound, first_rejected=first, certificate=bound)
+    else:
+        P = {k: float(ev.max_p(k)) for k in reversed(grid)}
+        inv = invert_path(grid, [P[k] for k in grid], ALPHA, n)
+    return inv, P
+
+
+def _write_stability(out, rows):
+    """Checkpoint each completed configuration without exposing partially written CSV files."""
+    path = out / 'stability.csv'
+    tmp = path.with_suffix('.csv.tmp')
+    pd.DataFrame(rows).to_csv(tmp, index=False)
+    os.replace(tmp, path)
+
+
+def _actg_one(sub, z, strat, M, seed, primary, grid_mode='all'):
     n = len(sub)
     draws = sample_within_strata(strat, z, M, np.random.default_rng(seed))
-    grid = paper_grid(n)
     out = {}
     for score, y in (('raw', sub.cd420.to_numpy(float)), ('change', (sub.cd420 - sub.cd40).to_numpy(float))):
         ev = S.Shared1D(y, z, draws)
-        P = {k: float(ev.max_p(k)) for k in grid}
-        inv = invert_path(grid, [P[k] for k in grid], ALPHA, n)
+        inv, P = _search_sizes(ev, n, grid_mode)
         rec = dict(bound=inv['grid_bound'], first_rejected=inv['first_rejected'], certificate=inv['certificate'],
                    P_at_first_rejected=P[inv['first_rejected']] if inv['first_rejected'] else None,
+                   search='descending' if grid_mode == 'all' else 'paper_grid',
+                   grid_mode=grid_mode, evaluated_sizes=sorted(P),
                    unresolved_near_ties=int(ev.unresolved), P=P)
         if primary:
             b = inv['grid_bound']
@@ -175,64 +211,80 @@ def _rank_by(primary, pid):
     return r
 
 
-def run_actg(data_dir, out, stability, two_covariates):
+def run_actg(data_dir, out, stability, two_covariates, grid_mode='all', primary=True, stability_configs=None):
     sub, z, strat = RD.load_actg(Path(data_dir) / 'actg175' / 'actg175.csv')
     n = len(sub)
     out.mkdir(parents=True, exist_ok=True)
-    res, draws = _actg_one(sub, z, strat, ACTG_M, ACTG_SEED, primary=True)
-    W = sub.cd40.to_numpy(float)
-    summary = dict(dataset='ACTG175', covariate='baseline CD4 count (cd40)', ties='patient id', arms='0 versus 1',
-                   design='complete randomization within the three strata, observed treated count per stratum',
-                   n=n, n1=int(z.sum()), M=ACTG_M, seed=ACTG_SEED, alpha=ALPHA, grid=paper_grid(n), outcomes={})
-    for score, r in res.items():
-        write_pieces(out / f'display_pieces_{score}.csv', W, r['mask'], np.arange(0, 1201, 20))
-        pd.DataFrame(mask_runs(r['mask']), columns=['start', 'end']).to_csv(out / f'covered_runs_{score}.csv', index=False)
-        summary['outcomes'][score] = {k: v for k, v in r.items() if k not in ('mask', 'P')}
-        summary['outcomes'][score]['P'] = {str(k): v for k, v in r['P'].items()}
-    write_json(out / 'summary.json', summary)
-    print(json.dumps({s: {k: r[k] for k in ('bound', 'first_rejected', 'windows', 'covered_units')} for s, r in res.items()}),
-          flush=True)
+    res, draws = None, None
+    if primary:
+        res, draws = _actg_one(sub, z, strat, ACTG_M, ACTG_SEED, primary=True, grid_mode=grid_mode)
+        W = sub.cd40.to_numpy(float)
+        summary = dict(dataset='ACTG175', covariate='baseline CD4 count (cd40)', ties='patient id', arms='0 versus 1',
+                       design='complete randomization within the three strata, observed treated count per stratum',
+                       n=n, n1=int(z.sum()), M=ACTG_M, seed=ACTG_SEED, alpha=ALPHA,
+                       grid_mode=grid_mode, grid=_candidate_sizes(n, grid_mode), outcomes={})
+        for score, r in res.items():
+            write_pieces(out / f'display_pieces_{score}.csv', W, r['mask'], np.arange(0, 1201, 20))
+            pd.DataFrame(mask_runs(r['mask']), columns=['start', 'end']).to_csv(out / f'covered_runs_{score}.csv', index=False)
+            summary['outcomes'][score] = {k: v for k, v in r.items() if k not in ('mask', 'P')}
+            summary['outcomes'][score]['P'] = {str(k): v for k, v in r['P'].items()}
+        write_json(out / 'summary.json', summary)
+        print(json.dumps({s: {k: r[k] for k in ('bound', 'first_rejected', 'windows', 'covered_units')}
+                          for s, r in res.items()}), flush=True)
     if stability:
         rows = []
-        for M in (500, 1000, 2000, 5000):
-            for seed in (20260520, 20260521, 20260522):
-                r, _ = _actg_one(sub, z, strat, M, seed, primary=False)
-                for score in ('raw', 'change'):
-                    rows.append(dict(M=M, seed=seed, outcome=score, bound=r[score]['bound'],
-                                     first_rejected=r[score]['first_rejected'], certificate=r[score]['certificate']))
-        pd.DataFrame(rows).to_csv(out / 'stability.csv', index=False)
+        for M, seed in (ACTG_STABILITY if stability_configs is None else stability_configs):
+            if res is not None and (M, seed) == (ACTG_M, ACTG_SEED):
+                r = res
+            else:
+                r, _ = _actg_one(sub, z, strat, M, seed, primary=False, grid_mode=grid_mode)
+            for score in ('raw', 'change'):
+                rows.append(dict(M=M, seed=seed, outcome=score, bound=r[score]['bound'], grid_mode=grid_mode,
+                                 first_rejected=r[score]['first_rejected'], certificate=r[score]['certificate']))
+                print(json.dumps(rows[-1]), flush=True)
+            _write_stability(out, rows)
     if two_covariates:
         pid = sub.pidnum.to_numpy()
         g1 = _rank_by(sub.cd40.to_numpy(float), pid)
         g2 = _rank_by(sub.age.to_numpy(float), pid)
         orders = K.knn_orders(g1, g2)
-        grid = paper_grid(n)
-        two = dict(covariates=['cd40', 'age'], ties='ranks by (covariate, patient id); distance ties by the cd40 rank')
+        if draws is None:
+            draws = sample_within_strata(strat, z, ACTG_M, np.random.default_rng(ACTG_SEED))
+        grid = _candidate_sizes(n, grid_mode)
+        two = dict(covariates=['cd40', 'age'], ties='ranks by (covariate, patient id); distance ties by the cd40 rank',
+                   n=n, n1=int(z.sum()), M=ACTG_M, seed=ACTG_SEED, alpha=ALPHA, grid_mode=grid_mode, grid=grid)
         masks = {}
         for score, y in (('raw', sub.cd420.to_numpy(float)), ('change', (sub.cd420 - sub.cd40).to_numpy(float))):
             eg = S.Shared2D(y, z, draws, orders)
-            P2 = {k: float(eg.max_p(k)) for k in sorted(grid, reverse=True)}
-            b2, r2 = envelope_bound(P2, grid, ALPHA)
-            ed = S.Shared2D(y, z, draws, orders)
-            kd = int(S.descending(ed, n, ALPHA))
+            inv, P2 = _search_sizes(eg, n, grid_mode)
+            b2, r2 = inv['grid_bound'], inv['first_rejected']
+            kd = b2
+            unresolved = int(eg.unresolved)
+            if grid_mode == 'paper':
+                # Retain the previous comparison, while all-mode needs only one exact search.
+                ed = S.Shared2D(y, z, draws, orders)
+                kd = int(S.descending(ed, n, ALPHA))
+                unresolved += int(ed.unresolved)
             mask = np.zeros(n, bool)
             nwin = 0
             if b2 > 0:
-                p = S.Shared2D(y, z, draws, orders).local_p(b2)
+                p = eg.local_p(b2)
                 keep = np.flatnonzero(p > ALPHA)
                 nwin = len(keep)
                 for c in keep:
                     mask[orders[c, :b2]] = True
-            two[score] = dict(grid_bound=int(b2), first_rejected=r2, descending_bound=kd,
-                              P={str(k): P2[k] for k in grid}, nonrejected_regions=int(nwin), covered_units=int(mask.sum()),
+            two[score] = dict(bound=int(b2), grid_bound=int(b2), first_rejected=r2, descending_bound=kd,
+                              certificate=inv['certificate'], search='descending' if grid_mode == 'all' else 'paper_grid',
+                              evaluated_sizes=sorted(P2), P={str(k): P2[k] for k in sorted(P2)},
+                              nonrejected_regions=int(nwin), covered_units=int(mask.sum()),
                               covered_cd40_range=[float(sub.cd40[mask].min()), float(sub.cd40[mask].max())] if mask.any() else None,
                               covered_age_range=[float(sub.age[mask].min()), float(sub.age[mask].max())] if mask.any() else None,
                               inside=diff_in_means(y, z, mask), outside=diff_in_means(y, z, ~mask),
-                              unresolved_near_ties=int(eg.unresolved + ed.unresolved))
+                              unresolved_near_ties=unresolved)
             masks[score] = mask
             print(score, json.dumps({k: two[score][k] for k in ('grid_bound', 'first_rejected', 'descending_bound',
                                                                   'nonrejected_regions', 'covered_units')}), flush=True)
-        write_json(out / 'two_covariates.json', two)
+            write_json(out / 'two_covariates.json', two)
         # unit-level points for the scatter display stay in the git-ignored folder local/ (never shared)
         (out / 'local').mkdir(exist_ok=True)
         np.savez_compressed(out / 'local' / 'two_covariates_points.npz', ranks=np.column_stack((g1, g2)) / n,
@@ -245,19 +297,19 @@ NOY_STABILITY = [(5000, 20260919), (5000, 20260920), (5000, 20260921),
                  (50000, 20260918), (50000, 20260919), (50000, 20260920), (200000, 20260918)]
 
 
-def _noy_one(frame, score, M, seed, primary):
+def _noy_one(frame, score, M, seed, primary, grid_mode='all'):
     from zeroreach.realdata import scale_exact
     y, scale = scale_exact(frame[f'{score}_exact'])
     z = frame.treatment.to_numpy(dtype=np.int8)
     n = len(frame)
     draws = sample_crd(n, int(z.sum()), M, np.random.default_rng(seed))
-    grid = paper_grid(n)
     ev = S.Shared1D(y, z, draws)
-    P = {k: float(ev.max_p(k)) for k in grid}
-    inv = invert_path(grid, [P[k] for k in grid], ALPHA, n)
+    inv, P = _search_sizes(ev, n, grid_mode)
     rec = dict(n=n, n1=int(z.sum()), M=M, seed=seed, score_scale=scale, bound=inv['grid_bound'],
                first_rejected=inv['first_rejected'], certificate=inv['certificate'],
-               P_at_bound=P.get(inv['grid_bound']), unresolved_near_ties=int(ev.unresolved))
+               P_at_bound=P.get(inv['grid_bound']), unresolved_near_ties=int(ev.unresolved),
+               grid_mode=grid_mode, grid=_candidate_sizes(n, grid_mode),
+               search='descending' if grid_mode == 'all' else 'paper_grid', evaluated_sizes=sorted(P))
     if primary:
         b = inv['grid_bound']
         p = ev.local_p(b) if b else np.empty(0)
@@ -266,34 +318,35 @@ def _noy_one(frame, score, M, seed, primary):
             mask[s:s + b] = True
         W = np.asarray([float(x) for x in frame.W_exact])
         yf = np.asarray([float(x) for x in frame[f'{score}_exact']])
-        rec.update(P={str(k): P[k] for k in grid}, windows=int((p > ALPHA).sum()), covered_units=int(mask.sum()),
+        rec.update(P={str(k): P[k] for k in sorted(P)}, windows=int((p > ALPHA).sum()), covered_units=int(mask.sum()),
                    covered_W_range=[float(W[mask].min()), float(W[mask].max())] if b else None,
                    inside=diff_in_means(yf, z, mask), outside=diff_in_means(yf, z, ~mask),
                    overall=diff_in_means(yf, z, np.ones(n, bool)), mask=mask, W=W)
     return rec
 
 
-def run_noy(data_dir, out, stability):
+def run_noy(data_dir, out, stability, grid_mode='all', primary=True, stability_configs=None):
     cohorts = RD.load_noy(Path(data_dir) / 'noy')
     out.mkdir(parents=True, exist_ok=True)
     summary = dict(dataset='NoyZhang', covariate='grade of the first task (exact mean of the grades)',
                    ties='participant id', assumption='complete randomization within the analysed sample',
-                   alpha=ALPHA, outcomes={})
-    for score in ('quality', 'time'):
-        r = _noy_one(cohorts[score], score, NOY_M, NOY_SEED, primary=True)
-        write_pieces(out / f'display_pieces_{score}.csv', r['W'], r['mask'], np.arange(5, 44, 2) / 6)
-        summary['outcomes'][score] = {k: v for k, v in r.items() if k not in ('mask', 'W')}
-        print(score, json.dumps({k: r[k] for k in ('n', 'bound', 'first_rejected', 'windows', 'covered_units')}), flush=True)
-    write_json(out / 'summary.json', summary)
+                   alpha=ALPHA, grid_mode=grid_mode, outcomes={})
+    if primary:
+        for score in ('quality', 'time'):
+            r = _noy_one(cohorts[score], score, NOY_M, NOY_SEED, primary=True, grid_mode=grid_mode)
+            write_pieces(out / f'display_pieces_{score}.csv', r['W'], r['mask'], np.arange(5, 44, 2) / 6)
+            summary['outcomes'][score] = {k: v for k, v in r.items() if k not in ('mask', 'W')}
+            write_json(out / 'summary.json', summary)
+            print(score, json.dumps({k: r[k] for k in ('n', 'bound', 'first_rejected', 'windows', 'covered_units')}), flush=True)
     if stability:
         rows = []
-        for M, seed in NOY_STABILITY:
+        for M, seed in (NOY_STABILITY if stability_configs is None else stability_configs):
             for score in ('quality', 'time'):
-                r = _noy_one(cohorts[score], score, M, seed, primary=False)
+                r = _noy_one(cohorts[score], score, M, seed, primary=False, grid_mode=grid_mode)
                 rows.append({k: r[k] for k in ('M', 'seed', 'n', 'bound', 'first_rejected', 'certificate', 'P_at_bound')}
-                            | dict(outcome=score))
+                            | dict(outcome=score, grid_mode=grid_mode))
                 print(json.dumps(rows[-1]), flush=True)
-        pd.DataFrame(rows).to_csv(out / 'stability.csv', index=False)
+                _write_stability(out, rows)
 
 
 def main():
@@ -301,22 +354,55 @@ def main():
     ap.add_argument('--dataset', required=True, choices=['ggl', 'actg', 'noy'])
     ap.add_argument('--data-dir', type=Path, default=REPO / 'data' / 'raw')
     ap.add_argument('--out', type=Path)
+    ap.add_argument('--grid', choices=['all', 'paper'], default='all',
+                    help='all: exact descending over 1,...,n (default); paper: reproduce the previous sparse grid')
     ap.add_argument('--robustness', action='store_true', help='GGL: tie-breaking rules and seeds')
     ap.add_argument('--stability', action='store_true', help='ACTG and Noy: Monte Carlo sizes and seeds')
     ap.add_argument('--two-covariates', action='store_true', help='ACTG: baseline CD4 count and age')
+    phase = ap.add_mutually_exclusive_group()
+    phase.add_argument('--stability-only', action='store_true', help='skip primary analysis; run stability configurations')
+    phase.add_argument('--two-covariates-only', action='store_true', help='ACTG: skip one-dimensional analysis')
+    ap.add_argument('--stability-config', action='append', metavar='M:SEED',
+                    help='run only these original stability configurations (repeatable; implies --stability)')
     ap.add_argument('--nchunk', type=int, default=16, help='GGL: number of parallel chunks of draws')
     a = ap.parse_args()
+    if a.dataset == 'ggl' and a.grid == 'all':
+        ap.error('GGL full-integer search requires its dedicated runner; use --grid paper only to reproduce the old grid')
+    if a.dataset == 'ggl' and (a.stability_only or a.two_covariates_only or a.stability_config):
+        ap.error('phase and stability-configuration options apply only to ACTG/Noy')
+    if a.dataset != 'actg' and (a.two_covariates or a.two_covariates_only):
+        ap.error('--two-covariates and --two-covariates-only apply only to ACTG')
+    configs = None
+    if a.stability_config:
+        try:
+            configs = [tuple(map(int, item.split(':'))) for item in a.stability_config]
+        except ValueError:
+            ap.error('--stability-config must have the format M:SEED')
+        allowed = ACTG_STABILITY if a.dataset == 'actg' else NOY_STABILITY
+        if any(item not in allowed for item in configs) or len(set(configs)) != len(configs):
+            ap.error('--stability-config must select distinct configurations from the original experiment')
+    a.stability = a.stability or a.stability_only or bool(configs)
+    a.two_covariates = a.two_covariates or a.two_covariates_only
+    if a.two_covariates_only and a.stability:
+        ap.error('--two-covariates-only cannot be combined with stability analyses')
     from zeroreach.utils import limit_threads
     limit_threads()
-    out = a.out or REPO / 'results' / 'real_data' / a.dataset
+    output_root = REPO / 'results' if a.grid == 'all' else REPO / 'results/paper_grid_reproduction'
+    out = a.out or output_root / 'real_data' / a.dataset
+    if any((out / name).exists() for name in ('summary.json', 'two_covariates.json', 'stability.csv', 'run_meta.json')):
+        ap.error(f'output already contains results: {out}; choose a new --out directory')
+    metadata = dict(dataset=a.dataset, grid_mode=a.grid, robustness=a.robustness, stability=a.stability,
+                    stability_configs=configs, two_covariates=a.two_covariates,
+                    primary=not (a.stability_only or a.two_covariates_only), environment=environment(), status='running')
+    write_json(out / 'run_meta.json', metadata)
     if a.dataset == 'ggl':
         run_ggl(a.data_dir, out, a.robustness, a.nchunk)
     elif a.dataset == 'actg':
-        run_actg(a.data_dir, out, a.stability, a.two_covariates)
+        run_actg(a.data_dir, out, a.stability, a.two_covariates, a.grid, metadata['primary'], configs)
     else:
-        run_noy(a.data_dir, out, a.stability)
-    write_json(out / 'run_meta.json', dict(dataset=a.dataset, robustness=a.robustness, stability=a.stability,
-                                           two_covariates=a.two_covariates, environment=environment()))
+        run_noy(a.data_dir, out, a.stability, a.grid, metadata['primary'], configs)
+    metadata['status'] = 'complete'
+    write_json(out / 'run_meta.json', metadata)
     print('DONE', out, flush=True)
 
 

@@ -7,6 +7,7 @@ Table 1 (computational costs) is analytical and has no data.
 import argparse
 import sys
 from pathlib import Path
+from decimal import Decimal, ROUND_HALF_UP
 
 REPO = Path(__file__).resolve().parent
 if str(REPO) not in sys.path:
@@ -17,7 +18,7 @@ import pandas as pd                                    # noqa: E402
 from zeroreach import summaries as SU                  # noqa: E402
 
 SCEN_LONG = {'S0': 'normal errors', 'S1': '$t_3$ errors', 'S2': 'heteroskedastic errors', 'S3': 'binary outcome',
-             'S4': 'opposite-sign effects', 'S5': 'stratified design'}
+             'S4': 'mixed-sign effects', 'S5': 'stratified design'}
 
 
 def pct(c):
@@ -33,7 +34,8 @@ def table_actg(out):
     """Table F.2 (arXiv Table 2): ACTG 175, raw and baseline-adjusted outcomes."""
     a = SU.real('actg')
     n = a['n']
-    L = [r'\begin{tabular}{lllccc}', r'\toprule',
+    L = [r'\setlength{\tabcolsep}{6pt}', r'\renewcommand{\arraystretch}{1.18}',
+         r'\begin{tabular}{p{3.5cm} p{3.3cm} p{3.4cm} r r r}', r'\toprule',
          r'Outcome & Assignment draws & Adjustment & $\widehat L_{n,0}^{\,U}$ & $\widehat L_{n,0}^{\,U}/n$ & $r^{\ast}$ \\',
          r'\midrule']
     rows = []
@@ -50,26 +52,27 @@ def table_actg(out):
 
 
 def table_stress(out):
-    """Appendix H.1 (arXiv Table 3): coverage (%) by scenario, n and method."""
+    """Full-integer coverage of actual L0; original outcomes and separate OLS diagnostics."""
     S = SU.stress()
-    L = [r'\begin{tabular}{llccccc}', r'\toprule',
-         r'& & \multicolumn{3}{c}{$5\%$ grid} & \multicolumn{2}{c}{All integer lengths} \\',
-         r'\cmidrule(lr){3-5}\cmidrule(lr){6-7}',
-         r'Scenario & $n$ & raw & \makecell{independent\\OLS} & \makecell{in-sample\\OLS} & descending & bisection \\',
+    L = [r'\begin{tabular}{llcccc}', r'\toprule',
+         r'& & \multicolumn{3}{c}{Descending search} & Bisection \\',
+         r'\cmidrule(lr){3-5}\cmidrule(lr){6-6}',
+         r'Scenario & $n$ & \makecell{Original\\outcomes} & \makecell{Independent\\OLS} & \makecell{In-sample\\OLS} & \makecell{Original\\outcomes} \\',
          r'\midrule']
     rows = []
-    for s in SU.SCEN:
+    for scenario in SU.SCEN:
         for n in (200, 1000, 4000):
-            r = S[f'{s}/n{n}']
-            L.append(f"{SCEN_LONG[s] if n == 200 else ''} & {n:,} & {pct(r['raw_grid']['coverage'])} & "
-                     f"{pct(r['indep_grid']['coverage'])} & {pct(r['insample_grid']['coverage'])} & "
-                     f"{pct(r['raw_desc']['coverage'])} & {pct(r['raw_bis']['coverage'])} \\\\")
-            rows.append(dict(scenario=s, n=n, R=r['R'], raw_grid=r['raw_grid']['coverage']['rate'],
-                             indep_grid=r['indep_grid']['coverage']['rate'], insample_grid=r['insample_grid']['coverage']['rate'],
-                             raw_descending=r['raw_desc']['coverage']['rate'], raw_bisection=r['raw_bis']['coverage']['rate'],
-                             raw_grid_bound_over_n=r['raw_grid']['bound_over_n'],
-                             bisection_below_descending=r['raw_bis']['below_desc'],
-                             two_sided_grid=r.get('raw_two_sided_grid', {}).get('coverage', {}).get('rate')))
+            r = S[f'{scenario}/n{n}']
+            cells = [SCEN_LONG[scenario] if n == 200 else '', f'{n:,}']
+            cells += [pct(r[key]['coverage']) for key in ('raw_desc', 'indep_grid', 'insample_grid', 'raw_bis')]
+            L.append(' & '.join(cells) + r' \\')
+            rows.append(dict(scenario=scenario, n=n, R=r['R'], original_coverage=r['raw_desc']['coverage']['rate'],
+                             independent_ols_coverage=r['indep_grid']['coverage']['rate'],
+                             in_sample_ols_coverage=r['insample_grid']['coverage']['rate'],
+                             bisection_coverage=r['raw_bis']['coverage']['rate'],
+                             original_bound_over_n=r['raw_desc']['bound_over_n'],
+                             true_size_mean=r['L0_mean'],
+                             bisection_below_descending=r['raw_bis']['below_desc']))
     L += [r'\bottomrule', r'\end{tabular}']
     write(out, 'stress', L, rows)
 
@@ -140,7 +143,8 @@ def table_dispersed(out):
     for v, lab in (('dispersed5', 'dispersed (half zero)'), ('cancel5', 'cancelling ($\\pm\\delta$)')):
         for n in (1000, 4000):
             r = S[f'{v}/n{n}']
-            L.append(f"{lab if n == 1000 else ''} & {n:,} & {r['L0'][0] / n:.4f} & {r['one_sided']['mean']:.3f} & "
+            truth = (Decimal(r['L0'][0]) / Decimal(n)).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+            L.append(f"{lab if n == 1000 else ''} & {n:,} & {truth} & {r['one_sided']['mean']:.3f} & "
                      f"{r['two_sided']['mean']:.3f} \\\\")
             rows.append(dict(effect=v, n=n, L0_over_n=r['L0'][0] / n, centred_mean_bound_over_n=r['one_sided']['mean'],
                              two_sided_mean_bound_over_n=r['two_sided']['mean']))
@@ -170,20 +174,21 @@ def table_two_sided(out):
 
 
 def table_shared_vs_conditional(out):
-    """Appendix H.7 (arXiv Table 9): shared and conditional tests on the same datasets."""
+    """Paired full-integer comparisons; uncontrolled cross-host timings are not tabulated."""
     S = SU.shared_vs_conditional()
-    L = [r'\begin{tabular}{rlcccc}', r'\toprule', r'$n$ & Test & Coverage (\%) & Mean bound$/n$ & CPU s & Same (\%) \\',
-         r'\midrule']
+    L = [r'\begin{tabular}{rlccc}', r'\toprule',
+         r'$n$ & Test & Coverage (\%) & Mean bound$/n$ & Same (\%) \\', r'\midrule']
     rows = []
     for n in (1000, 4000):
         r = S[f'n{n}']
-        L.append(f"{n:,} & shared & {pct(r['shared']['coverage'])} & {r['shared']['bound_over_n']:.4f} & "
-                 f"{r['shared']['cpu']:.2f} & {100 * r['identical']:.1f} \\\\")
-        L.append(f" & conditional & {pct(r['conditional']['coverage'])} & {r['conditional']['bound_over_n']:.4f} & "
-                 f"{r['conditional']['cpu']:.1f} & \\\\")
-        rows.append(dict(n=n, shared_coverage=r['shared']['coverage']['rate'], shared_bound_over_n=r['shared']['bound_over_n'],
-                         shared_cpu=r['shared']['cpu'], conditional_coverage=r['conditional']['coverage']['rate'],
-                         conditional_bound_over_n=r['conditional']['bound_over_n'], conditional_cpu=r['conditional']['cpu'],
+        for j, method in enumerate(('shared', 'conditional')):
+            cells = [f'{n:,}' if j == 0 else '', method, pct(r[method]['coverage']),
+                     f"{r[method]['bound_over_n']:.4f}", f"{100*r['identical']:.1f}" if j == 0 else '']
+            L.append(' & '.join(cells) + r' \\')
+        rows.append(dict(n=n, shared_coverage=r['shared']['coverage']['rate'],
+                         shared_bound_over_n=r['shared']['bound_over_n'],
+                         conditional_coverage=r['conditional']['coverage']['rate'],
+                         conditional_bound_over_n=r['conditional']['bound_over_n'],
                          same=r['identical'], conditional_larger=r['cond_larger'], shared_larger=r['shared_larger']))
     L += [r'\bottomrule', r'\end{tabular}']
     write(out, 'shared_vs_conditional', L, rows)
