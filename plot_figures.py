@@ -20,6 +20,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt                        # noqa: E402
 from matplotlib.lines import Line2D                    # noqa: E402
 from matplotlib.patches import Circle, Patch  # noqa: E402
+from matplotlib.transforms import ScaledTranslation  # noqa: E402
 
 from zeroreach import summaries as SU                  # noqa: E402
 from zeroreach.style import (AQUA, BLUE, GRID, INK, INK2, NEUTRAL, ORANGE, RC, SYM_K, YELLOW,  # noqa: E402
@@ -39,29 +40,36 @@ def pieces(path):
 
 
 # ------------------------------------------------------------------------------------------ Figures 2-3
+CALIBRATION_DISPLAY_SIZES = tuple(n for n in SIZES if n <= 10000)
+
+
 def _axes_style(ax):
     ax.grid(axis='y', color=GRID, linewidth=0.6)
     ax.set_axisbelow(True)
-    ax.set_xscale('log')
+    ax.set_xscale('linear')
     ax.minorticks_off()
-    ax.set_xticks(SIZES)
-    ax.set_xticklabels([('\n' if n in (800, 10000) else '') + f'{n / 1000:g}' for n in SIZES])
-    ax.set_xlim(SIZES[0] / 1.15, SIZES[-1] * 1.15)
-    ax.set_xlabel('sample size $n$ (thousands, log scale)')
+    ax.set_xticks([200, 1000, 4000, 7000, 10000], ['.2', '1', '4', '7', '10'])
+    ax.set_xticks([400, 600, 800], minor=True)
+    ax.set_xlim(0, 10400)
+    ax.set_xlabel('sample size $n$ (thousands)')
 
 
 def fig_calibration(out):
-    """Figures 2 and 3: mean bound / n and coverage on the 5% grid, raw and adjusted outcomes."""
+    """Figures 2 and 3: calibration results through n=10000 on a linear axis.
+
+    The archived n=13000 results remain available; only these displays omit them.
+    """
     rows = SU.calibration('centre10')
     lab = {'raw': 'raw outcome', 'adjusted': 'independent OLS adjustment'}
     col = {'raw': BLUE, 'adjusted': ORANGE}
     mk = {'raw': 'o', 'adjusted': 's'}
     for dim in (1, 2):
-        sel = [r for r in rows if r['dimension'] == dim]
+        sel = [r for r in rows if r['dimension'] == dim and r['n'] in CALIBRATION_DISPLAY_SIZES]
         fig, ax = plt.subplots(figsize=(3.3, 2.6))
         for s in ('raw', 'adjusted'):
-            r = [x for x in sel if x['score'] == s]
-            ax.plot(SIZES, [x['mean_bound'] for x in r], marker=mk[s], ms=5, color=col[s], label=lab[s])
+            r = sorted((x for x in sel if x['score'] == s), key=lambda x: x['n'])
+            ax.plot([x['n'] for x in r], [x['mean_bound'] for x in r],
+                    marker=mk[s], ms=3.2, color=col[s], label=lab[s])
         sym = 'L' if dim == 1 else 'K'
         ax.axhline(K0_FRACTION, ls='--', color=INK, lw=1.0, label=f'true ${sym}_0/n={K0_FRACTION:.2f}$')
         ax.set_ylabel(r'mean $\widehat L_{n,0}^{\,U}/n$' if dim == 1 else r'mean $\widehat K_{0}^{\,U}/n$')
@@ -72,13 +80,16 @@ def fig_calibration(out):
         fig.savefig(out / f'fig_d{dim}_calibration_ratio.pdf')
         plt.close(fig)
         fig, ax = plt.subplots(figsize=(3.3, 2.6))
-        off = {'raw': 1 / 1.035, 'adjusted': 1.035}
+        # A small fixed offset in points separates the methods without growing with n.
+        off = {'raw': -0.65, 'adjusted': 0.65}
         for s in ('raw', 'adjusted'):
-            r = [x for x in sel if x['score'] == s]
-            x = np.array(SIZES) * off[s]
+            r = sorted((x for x in sel if x['score'] == s), key=lambda x: x['n'])
+            x = np.array([q['n'] for q in r])
             y = np.array([q['coverage'] for q in r])
             err = np.array([[q['coverage'] - q['wilson_lo'] for q in r], [q['wilson_hi'] - q['coverage'] for q in r]])
-            eb = ax.errorbar(x, y, yerr=err, marker=mk[s], ms=5, color=col[s], capsize=2.5, lw=1.4, label=lab[s])
+            transform = ax.transData + ScaledTranslation(off[s] / 72, 0, fig.dpi_scale_trans)
+            eb = ax.errorbar(x, y, yerr=err, marker=mk[s], ms=3.2, color=col[s],
+                            capsize=1.2, lw=1.4, label=lab[s], transform=transform)
             for art in [eb[0], *eb[1], *eb[2]]:
                 art.set_clip_on(False)
         ax.axhline(0.95, ls='--', color=INK, lw=1.0, label='nominal 0.95')
