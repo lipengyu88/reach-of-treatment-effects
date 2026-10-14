@@ -1,4 +1,4 @@
-"""Simulation designs of Section 6 and Appendix H.
+"""Simulation designs for the main experiments and supplementary diagnostics.
 
 generate() draws one dataset. Random numbers come from four independent streams per repetition
 (seed_plan): the data stream (covariates, then control outcomes), the assignment stream, the stream of
@@ -6,20 +6,20 @@ the independent calibration sample used by the outcome adjustment, and the Monte
 randomization draws). The zero-effect set consumes no randomness.
 
 Zero-effect sets (`zero`):
-  'centre10'     the floor(0.1 n) units nearest the centre, one candidate region (Sections 6.2-6.5);
+  'centre10'     the floor(0.1 n) units nearest the centre, one candidate region;
                  in one dimension this is the centred block of floor(0.1 n) units;
-  'two_regions'  the 20% of units nearest a left centre and the 10% nearest a right centre (Appendix H.2);
-  'strip20'      two covariates, first-coordinate rank at most 0.2 n (Section 6.3);
+  'two_regions'  the 20% of units nearest a left centre and the 10% nearest a right centre;
+  'strip20'      two covariates, first-coordinate rank at most 0.2 n;
   'circle'       the disc of area 0.10 around (0.5, 0.5) in covariate space, and the centred block in one
-                 dimension (the design of the timing comparison, Section 6.4);
-  'none'         no zero-effect unit (dispersed and cancelling effects, Appendix H.5).
+                 dimension (the design of the timing comparison);
+  'none'         no zero-effect unit (dispersed and cancelling effects).
 Effects outside the zero-effect set (`effect`): 'const' (delta), 'grad1' (delta times the normalized
 distance to the zero-effect set), 'neg' (-delta), 'asym' (+delta below the zero block, -delta/2 above),
-'dispersed5' and 'cancel5' (groups of five units in rank order). Scenarios (`scenario`, Appendix H.1):
+'dispersed5' and 'cancel5' (groups of five units in rank order). Stress scenarios (`scenario`):
 'S0' normal errors, 'S1' t3 errors, 'S2' heteroskedastic errors, 'S3' binary outcome, 'S4' opposite-sign
 effects, 'S5' stratified design.
 
-"Nearest" uses the metric of the method (Section 4): integer coordinate ranks with ties by unit index,
+"Nearest" uses the method's rank metric: integer coordinate ranks with ties by unit index,
 squared Euclidean rank distance, the unit itself first, distance ties by the smaller first-coordinate rank.
 """
 from __future__ import annotations
@@ -227,7 +227,7 @@ def generate(dim, n, rep, zero='centre10', effect='const', scenario='S0', M=500,
              size_index=None):
     """One simulated dataset. Returns covariates W, ranks, the zero-effect indicator, effects tau, the
     assignment z, the raw outcome y, the outcome adjusted with the independent calibration sample
-    (adj_indep), the outcome adjusted in sample (adj_insample, Appendix H.1 only), the M shared draws and
+    (adj_indep), the outcome adjusted in sample (adj_insample, stress diagnostic only), the M shared draws and
     the historical 5% grid under the compatibility key grid. Current experiment runners default to
     all integer candidate sizes independently of this legacy helper field."""
     if dim not in (1, 2) or n < 3 or M < 1:

@@ -1,15 +1,14 @@
-"""Compiled kernels for the searches of Table 1 (one-dimensional blocks, two-dimensional rank neighbourhoods).
+"""Compiled kernels for one-dimensional blocks and two-dimensional rank neighbourhoods.
 
 Choices that follow the paper:
-  * the default centred linear statistic, written as k*sum(zY) - sum(Y)*sum(z) (Section 3.2);
+  * the default centred linear statistic, written as k*sum(zY) - sum(Y)*sum(z);
   * separate raw comparison kernels use sum(zY), equivalent for one-sided tests to
     sum((z-pi)*Y) because the subtracted pi*sum(Y) is fixed across assignments;
   * the plus-one Monte Carlo p-value with ties counted, maximized over candidate regions;
-  * shared tests: M global completely randomized draws reused for every region (Section 3.2);
-  * conditional tests: every region redrawn from scratch with its observed treated count fixed
-    (Section 3.1; Table 1, "computed from scratch");
+  * shared tests: M global completely randomized draws reused for every region;
+  * conditional tests: every region redrawn from scratch with its observed treated count fixed;
   * two-dimensional candidates: all centres, Euclidean nearest neighbours in normalized ranks, the unit
-    itself first, distance ties broken by the first-coordinate rank (Section 4).
+    itself first, distance ties broken by the first-coordinate rank.
 Engineering choices that do not change any result: numba threads, compensated (TwoSum) cumulative sums,
 and a near-tie band whose members are resolved by exact set comparison. A near tie that is not a
 structural tie is counted as 'unresolved'; a run with unresolved == 0 has every comparison certified exact.
@@ -452,7 +451,7 @@ def group_regions(fp1, fp2, orders, k):
 
 
 # ----------------------------------------------------------------------------
-# Gaussian warm-start proposals (Appendix A); float64 on centred outcomes
+# Gaussian warm-start proposals; float64 on centred outcomes
 # ----------------------------------------------------------------------------
 @njit(cache=True)
 def _upper_tail(x):

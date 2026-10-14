@@ -1,8 +1,8 @@
-"""Write the tables of the paper (Appendices F.2 and H) from the files in results/, as LaTeX (.tex) and
+"""Write numerical tables from the files in results/, as LaTeX (.tex) and
 with unrounded numbers (.csv).
 
 usage: python make_tables.py [--out tables]
-Table 1 (computational costs) is analytical and has no data.
+The computational-cost table is analytical and has no data.
 """
 import argparse
 import sys
@@ -31,7 +31,7 @@ def write(out, name, lines, rows):
 
 
 def table_actg(out):
-    """Table F.2 (arXiv Table 2): ACTG 175, raw and baseline-adjusted outcomes."""
+    """ACTG 175: original and baseline-subtracted outcomes, both tested with the centred statistic."""
     a = SU.real('actg')
     n = a['n']
     L = [r'\setlength{\tabcolsep}{6pt}', r'\renewcommand{\arraystretch}{1.18}',
@@ -78,7 +78,7 @@ def table_stress(out):
 
 
 def table_two_regions(out):
-    """Appendix H.2 (arXiv Table 4): two disjoint zero-effect regions of 0.2n and 0.1n units."""
+    """Two disjoint zero-effect regions of 0.2n and 0.1n units."""
     S = SU.two_regions()
     L = [r'\begin{tabular}{rcccc}', r'\toprule',
          r'& \multicolumn{2}{c}{One covariate} & \multicolumn{2}{c}{Two covariates} \\', r'\cmidrule(lr){2-3}\cmidrule(lr){4-5}',
@@ -95,7 +95,7 @@ def table_two_regions(out):
 
 
 def table_rates(out):
-    """Appendix H.3 (arXiv Table 5): theoretical and fitted slopes."""
+    """Convergence rates: theoretical and fitted slopes."""
     S = SU.rates()
     names = {'d1/centre10-const': ('one', 'central, constant'), 'd1/centre10-grad1': ('one', 'central, grows with distance'),
              'd2/centre10-const': ('two', 'central, constant'), 'd2/centre10-grad1': ('two', 'central, grows with distance'),
@@ -115,7 +115,7 @@ def table_rates(out):
 
 
 def table_warm_start(out):
-    """Appendix H.4 (arXiv Table 6): CPU seconds, Monte Carlo lengths and accepted warm starts by n and M."""
+    """CPU seconds, Monte Carlo lengths and accepted warm starts by n and M."""
     S = SU.warm_start()
     L = [r'\begin{tabular}{rrcccc}', r'\toprule',
          r'$n$ & $M$ & \makecell{Bisection\\CPU s} & \makecell{With warm-start\\CPU s} & '
@@ -135,7 +135,7 @@ def table_warm_start(out):
 
 
 def table_dispersed(out):
-    """Appendix H.5 (arXiv Table 7): mean bound / n for dispersed and cancelling effects."""
+    """Mean bound / n for dispersed and cancelling effects."""
     S = SU.dispersed()
     L = [r'\begin{tabular}{lrccc}', r'\toprule', r'Effect pattern & $n$ & $L_0/n$ & centred statistic & $|T_B|$ \\',
          r'\midrule']
@@ -153,7 +153,7 @@ def table_dispersed(out):
 
 
 def table_two_sided(out):
-    """Appendix H.6 (arXiv Table 8): centred and two-sided statistics under three effect patterns."""
+    """Centred and two-sided statistics under three effect patterns."""
     S = SU.two_sided()
     lab = {'const': 'positive, $+1$', 'neg': 'negative, $-1$', 'asym': '$+1$ below, $-0.5$ above'}
     L = [r'\begin{tabular}{lrcccc}', r'\toprule',
@@ -195,7 +195,7 @@ def table_shared_vs_conditional(out):
 
 
 def table_effect_size(out):
-    """Appendix H.8 (arXiv Table 10): mean overshoot and coverage by effect size."""
+    """Mean overshoot and coverage by effect size."""
     S = SU.effect_size()
     L = [r'\begin{tabular}{rcccc}', r'\toprule',
          r'& \multicolumn{2}{c}{One covariate} & \multicolumn{2}{c}{Two covariates} \\', r'\cmidrule(lr){2-3}\cmidrule(lr){4-5}',
@@ -211,13 +211,13 @@ def table_effect_size(out):
 
 
 def table_calibration(out):
-    """Numbers behind Figures 2 and 3 (Section 6.2)."""
+    """Coverage and mean bounds for the uncentred-versus-centred comparison."""
     rows = SU.calibration('centre10')
     pd.DataFrame(rows).to_csv(out / 'calibration.csv', index=False)
 
 
 def table_timing(out):
-    """Numbers behind Figure 5 (Section 6.4): median CPU seconds."""
+    """Median CPU seconds for the computational-time comparison."""
     pd.DataFrame(SU.timing_table()).to_csv(out / 'timing.csv', index=False)
 
 

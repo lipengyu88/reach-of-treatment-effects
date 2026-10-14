@@ -5,6 +5,9 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+.env
+.env.*
+!.env.example
 
 # data from the providers (see data/README.md) and unit-level files derived from them
 data/raw/
@@ -12,5 +15,7 @@ results/real_data/*/local/
 
 # outputs of smoke tests and partial runs
 results/smoke/
+results/reproductions/
+results/paper_grid_reproduction/
 results/**/records/
 results/**/*.ckpt.json

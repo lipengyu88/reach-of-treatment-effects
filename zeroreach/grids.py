@@ -2,7 +2,7 @@
 
 On a pre-specified grid the bound is the largest searched size not rejected by the tail envelope
 P_r^up = max_{t >= r} P_t; the next searched size r* is rejected, and r* - 1 is an upper confidence bound
-for the size over all integer sizes (the certificate of Appendix E.6).
+for the size over all integer sizes (the sparse-grid certificate).
 """
 from __future__ import annotations
 

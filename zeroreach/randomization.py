@@ -23,7 +23,7 @@ def sample_crd(n, n1, M, rng):
 
 def sample_within_strata(strata, z, M, rng):
     """M assignments that randomize completely within each stratum, keeping the observed number of
-    treated units per stratum (ACTG 175, Section 6.8). Draw by draw, the strata are visited in sorted
+    treated units per stratum (ACTG 175). Draw by draw, the strata are visited in sorted
     order of their labels."""
     strata = np.asarray(strata)
     z = np.asarray(z)
@@ -38,8 +38,7 @@ def sample_within_strata(strata, z, M, rng):
 
 
 def sample_half_within_strata(strata, M, rng):
-    """M within-stratum complete randomizations with half of each stratum treated (stratified design of
-    Appendix H.1)."""
+    """M within-stratum complete randomizations with half treated, used in the stratified stress design."""
     n = len(strata)
     draws = np.zeros((M, n), np.int8)
     for s in np.unique(strata):
@@ -55,7 +54,7 @@ def sample_half_within_strata(strata, M, rng):
 
 def permutations_within_cells(cells, z, M, seed):
     """Observed assignment in row 0 and M permutations of the assignment within each cell in rows 1..M
-    (the recorded design of the Gerber-Green-Larimer experiment, Section 6.7). Cells are visited in order
+    (the recorded design of the Gerber-Green-Larimer experiment). Cells are visited in order
     of first appearance."""
     import pandas as pd
     z0 = np.asarray(z, dtype=np.int8)

@@ -1,4 +1,4 @@
-"""Download the public data files used in Sections 1, 6.7 and 6.8 into data/raw/ and check their SHA-256 sums.
+"""Download the public ACTG and writing data into data/raw/ and check provider-file SHA-256 sums.
 
 usage: python data/download.py            (downloads ACTG 175 and the Noy-Zhang files, then checks all files)
        python data/download.py --check    (only checks the files already in data/raw/)

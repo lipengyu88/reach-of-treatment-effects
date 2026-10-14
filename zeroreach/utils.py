@@ -22,8 +22,11 @@ def wilson(k, n, z=1.959963984540054):
 
 
 def check_blas():
-    """Check float64 matrix products and least squares before long runs (some OpenBLAS builds pick a
-    wrong kernel on some processors; setting OPENBLAS_CORETYPE=SKYLAKEX avoids it on Intel machines)."""
+    """Check float64 matrix products and least squares before long runs.
+
+    A failing check requires a compatible BLAS build or CPU dispatch setting. Forcing a kernel
+    that requires instructions absent from the host can terminate the process.
+    """
     rng = np.random.default_rng(0)
     A = rng.standard_normal((200, 200))
     gemm_err = float(np.abs(A @ A - (A[:, :, None] * A[None, :, :]).sum(axis=1)).max())
@@ -37,7 +40,7 @@ def check_blas():
     ls_err = float(np.abs(b - ref).max())
     if not (gemm_err < 1e-9 and ls_err < 1e-9):
         raise RuntimeError(f'BLAS check failed (matrix product error {gemm_err:.1e}, least squares error '
-                           f'{ls_err:.1e}); try OPENBLAS_CORETYPE=SKYLAKEX')
+                           f'{ls_err:.1e}); use a BLAS build or dispatch setting compatible with this CPU')
 
 
 def cpu_model():

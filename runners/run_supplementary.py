@@ -1,4 +1,4 @@
-"""Simulations of Section 6.3 (rate of convergence) and Appendix H.
+"""Convergence-rate simulations and supplementary diagnostics.
 
 Here raw denotes original outcomes tested with the centred statistic; adjusted denotes centred OLS
 residuals. These labels are distinct from the main uncentred-versus-centred calibration comparison.
@@ -6,18 +6,18 @@ Experiments (all one-dimensional unless stated; M = 500 shared draws, alpha = 0.
   rates                  K0 and the shared descending bound over all integer sizes, raw outcome; central
                          zero-effect region with a constant effect or an effect growing with the distance to
                          the region (one and two covariates), and a strip region (two covariates);
-                         n = 500, ..., 16000, 100 repetitions (Section 6.3, Table 5).
+                         n = 500, ..., 16000, 100 repetitions.
   stress                 scenarios S0-S5: integer bounds for the raw, independently adjusted and in-sample
                          adjusted outcomes, descending and bisection bounds over all integer sizes, and the
-                         two-sided statistic for S4; n = 200, 1000, 4000, 500 repetitions (Appendix H.1).
+                         two-sided statistic for S4; n = 200, 1000, 4000, 500 repetitions.
   dispersed              dispersed and cancelling effects, integer sizes, centred and two-sided statistics;
-                         n = 1000, 4000, 100 repetitions (Appendix H.5).
+                         n = 1000, 4000, 100 repetitions.
   two_sided              constant, negative and asymmetric effects outside the central block, integer sizes,
-                         centred and two-sided statistics; n = 200, 1000, 4000, 500 repetitions (H.6).
+                         centred and two-sided statistics; n = 200, 1000, 4000, 500 repetitions.
   shared_vs_conditional  shared and conditional tests on the same datasets, integer sizes; n = 1000, 4000,
-                         200 repetitions (Appendix H.7).
+                         200 repetitions.
   effect_size            descending bound over all integer sizes for effects 0.1 to 2 outside the central
-                         region, one and two covariates; n = 4000, 200 repetitions (Appendix H.8).
+                         region, one and two covariates; n = 4000, 200 repetitions.
 
 usage:
   python runners/run_supplementary.py --experiment rates [--workers 8] [--reps-max R]

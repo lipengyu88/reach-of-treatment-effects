@@ -1,12 +1,12 @@
-"""Evaluators and the four searches of Table 1 (Sections 3 and 4, Appendix A).
+"""Local-test evaluators, descending search, and bisection with an optional Gaussian warm start.
 
 Each evaluator exposes max_p(k), the largest plus-one Monte Carlo p-value over all candidate regions of
 size k, and gaussian_max(k), the Gaussian proposal used by the warm start. The searches are
   descending(ev, n)              sizes n, n-1, ...; the first non-rejected size is the bound;
-  bisection(ev, n, warm=False)   requires the monotonicity assumption of Section 3.3; warm=True first
-                                 brackets the bound with the Gaussian proposal (Appendix A).
+  bisection(ev, n, warm=False)   requires the paper's monotonicity assumption; warm=True first
+                                 brackets the bound with the Gaussian proposal.
 numpy_grid_pvalues() is a plain numpy evaluator of one-dimensional blocks on a grid, used for the
-two-sided statistic |T_B| (Section 6.6 and Appendix H).
+two-sided statistic |T_B| in the supplementary diagnostics.
 """
 from __future__ import annotations
 
@@ -339,7 +339,7 @@ def descending(ev, n, alpha=ALPHA):
 
 
 def bisection(ev, n, alpha=ALPHA, warm=False):
-    """Section 3.3 and Appendix A; requires the monotonicity assumption."""
+    """Bisection with an optional Gaussian warm start; requires the monotonicity assumption."""
     bracket, accepted = None, False
     if warm:
         a = 1

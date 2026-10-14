@@ -1,15 +1,14 @@
-"""Computation times of the methods of Table 1 (Section 6.4) and of the Gaussian warm start as the number
-of draws grows (Appendix H.4).
+"""Computation times of four searches and of the Gaussian warm start as the number of draws grows.
 
 methods    conditional descending search, shared descending search, shared bisection and shared bisection
-           with the Gaussian warm start, on the design of Section 6.4 (raw outcome, M = 500), one and two
-           covariates, n = 1000, 5000, 10000, 15000, 20000. Shared methods are timed on ten simulated
+           with the Gaussian warm start, using original outcomes with the centred statistic (M = 500),
+           one and two covariates, n = 1000, 5000, 10000, 15000, 20000. Shared methods are timed on ten simulated
            datasets (the figure shows the median); the conditional method on the first dataset only, three
            times at n = 1000 (the figure shows the median) and once for larger n (one run takes up to several
            CPU days at n = 20000 and checkpoints every ten minutes).
 warm_start one covariate, n = 5000 and 20000, M = 500, 2000, 10000, 50000, bisection with and without the
            warm start, ten datasets.
-Timed: two-dimensional neighbour orders, shared draws, cumulative sums and the search. Not timed: data
+Timed: two-dimensional neighbour orders, assignment draws, evaluator setup and search. Not timed: data
 generation and numba compilation (warmed up first). Times depend on the machine; the records state the
 processor and the number of threads (NUMBA_NUM_THREADS).
 

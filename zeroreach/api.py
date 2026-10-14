@@ -12,7 +12,7 @@ def upper_bound(W, Y, Z, alpha=0.05, M=5000, grid='all', seed=0, draws=None, str
     """Upper confidence bound for the size of the largest zero-effect region.
 
     W      pre-treatment covariate: shape (n,) for blocks of consecutive units in the order of W, or (n, 2)
-           for nearest-neighbour regions in normalized ranks (Section 4). Ties are broken by unit index.
+           for nearest-neighbour regions in normalized ranks. Ties are broken by unit index.
     Y, Z   outcomes and binary treatment indicators (Z = 1 treated).
     grid   'all' (default) for integer candidate sizes 1,...,n, using exact descending search without
            a monotonicity assumption. 'paper' explicitly reproduces the historical 5%-of-n candidate

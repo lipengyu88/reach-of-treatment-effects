@@ -16,8 +16,8 @@ CALIBRATION_RESULTS = RESULTS / 'centering_comparison/full_integer'
 SIZES = [200, 400, 600, 800, 1000, 4000, 7000, 10000, 13000]
 NS_RATE = [500, 1000, 2000, 4000, 8000, 16000]
 SCEN = ['S0', 'S1', 'S2', 'S3', 'S4', 'S5']
-# theory of Section 5: overshoot of order (log n / n)^{1/(2 gamma)}, gamma = nu + beta, with (nu, beta) for each
-# design; nu = 3/2 for the strip is the value suggested by the boundary-cap calculation of Appendix C
+# Convergence theory: overshoot of order (log n / n)^{1/(2 gamma)}, gamma = nu + beta, with (nu, beta) for each
+# design; nu = 3/2 for the strip is the value suggested by the boundary-cap calculation.
 THEORY = {'centre10-const': (1.0, 0.0), 'centre10-grad1': (1.0, 1.0), 'strip20-const': (1.5, 0.0)}
 RATE_CELLS = [(1, 'centre10-const'), (1, 'centre10-grad1'), (2, 'centre10-const'), (2, 'centre10-grad1'),
               (2, 'strip20-const')]
@@ -66,7 +66,7 @@ def slope(ns, ys):
     return float(np.polyfit(np.log(ns[ok]), np.log(ys[ok]), 1)[0])
 
 
-# ----------------------------------------------------------------------------------- Section 6.2 and H.2
+# Centring comparison and separate two-region diagnostic
 def calibration_records(design='centre10', expected_reps=200):
     """Read only explicitly identified uncentered-versus-centered records."""
     import pandas as pd
@@ -140,7 +140,7 @@ def two_regions():
     return res
 
 
-# -------------------------------------------------------------------------------------------- Section 6.3
+# Convergence rates
 def rates():
     recs = records('supplementary/rates/details.csv')
     res = {}
@@ -170,7 +170,7 @@ def rates():
     return res
 
 
-# -------------------------------------------------------------------------------------------- Section 6.4
+# Computational time
 def timing_table():
     """Median CPU and wall seconds by dimension, n and method (over datasets for the shared methods, over
     the timing runs for the conditional method)."""
@@ -208,7 +208,7 @@ def warm_start():
     return res
 
 
-# --------------------------------------------------------------------------------------------- Appendix H
+# Supplementary diagnostics
 def stress():
     recs = complete_integer_records('supplementary/stress/details.csv', 500,
                                     [(s, 1, n) for s in SCEN for n in (200, 1000, 4000)])

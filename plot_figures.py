@@ -42,7 +42,7 @@ def pieces(path):
     return list(zip(df.left, df.width, df.height, df.covered.astype(bool)))
 
 
-# ------------------------------------------------------------------------------------------ Figures 2-3
+# Centring comparison
 CALIBRATION_RATIO_SIZES = tuple(n for n in SIZES if n <= 7000)
 CALIBRATION_COVERAGE_SIZES = tuple(n for n in SIZES if 1000 <= n <= 13000)
 
@@ -65,7 +65,7 @@ def _axes_style(ax, panel):
 
 
 def fig_calibration(out):
-    """Figures 2 and 3: panel-specific sample ranges on linear axes.
+    """Centring comparison: panel-specific sample ranges on linear axes.
 
     Bound ratios show n<=7000; coverage shows 1000<=n<=13000. All nine
     sample sizes remain in the archived results and experiment configuration.
@@ -113,9 +113,9 @@ def fig_calibration(out):
         plt.close(fig)
 
 
-# ---------------------------------------------------------------------------------------------- Figure 4
+# Convergence rates
 def fig_rates(out):
-    """Figure 4: mean overshoot against n with the theoretical slopes."""
+    """Mean overshoot against n with the theoretical slopes."""
     rates = SU.rates()
     style = {'centre10-const': (BLUE, 'o', 'central zero region, constant effect'),
              'centre10-grad1': (ORANGE, 's', 'central zero region, effect grows with distance'),
@@ -151,7 +151,7 @@ def fig_rates(out):
     plt.close(fig)
 
 
-# ---------------------------------------------------------------------------------------------- Figure 5
+# Computational time
 TSIZES = [1000, 5000, 10000, 15000, 20000]
 METHOD_STYLE = [
     ('conditional_descending', 'conditional, descending search', BLUE, 'o', '-'),
@@ -162,7 +162,7 @@ METHOD_STYLE = [
 
 
 def fig_timing(out):
-    """Figure 5: CPU minutes of the four searches (medians over datasets or timing runs)."""
+    """CPU minutes of the four searches (medians over datasets or timing runs)."""
     rows = SU.timing_table()
     for dim in (1, 2):
         fig, ax = plt.subplots(figsize=(6.4, 3.4))
@@ -187,9 +187,9 @@ def fig_timing(out):
         plt.close(fig)
 
 
-# ------------------------------------------------------------------------------------------ Figures 6-7
+# Non-rejected simulation regions
 def fig_regions(out):
-    """Figures 6 and 7: units in candidate regions of the reported size that are not rejected, n = 7000."""
+    """Units in candidate regions of the reported size that are not rejected, n = 7000."""
     from runners import run_calibration as C
     records = SU.calibration_records()
     for dim in (1, 2):
@@ -256,9 +256,9 @@ def fig_regions(out):
         plt.close(fig)
 
 
-# ---------------------------------------------------------------------------------------- Figures 1, 8-10
+# Real-data region displays
 def fig_real(out):
-    """Figures 1, 8 and 9 from the stored aggregates; Figure 10 only if unit-level files exist locally."""
+    """Real-data displays from aggregates; the ACTG scatter requires local unit-level arrays."""
     base = RES / 'real_data'
     actg = SU.real('actg')
     n = actg['n']
@@ -353,7 +353,7 @@ def fig_real(out):
     plt.close(fig)
 
 
-# --------------------------------------------------------------------------------------- Figures 12-14
+# Supplementary simulation displays
 SCEN_SHORT = {'S0': 'normal', 'S1': '$t_3$ errors', 'S2': 'heterosk.', 'S3': 'binary', 'S4': 'mixed sign',
               'S5': 'stratified'}
 N_STYLE = {200: (AQUA, 'o'), 1000: (BLUE, 's'), 4000: (ORANGE, '^')}
@@ -397,7 +397,7 @@ def fig_stress(out):
 
 
 def fig_warm(out):
-    """Figure 13: bisection with and without the Gaussian warm start as M grows."""
+    """Bisection with and without the Gaussian warm start as M grows."""
     e5 = SU.warm_start()
     Ms = [500, 2000, 10000, 50000]
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.8))
@@ -432,7 +432,7 @@ def fig_warm(out):
 
 
 def fig_effect_size(out):
-    """Figure 14: mean overshoot against the effect outside the zero-effect region."""
+    """Mean overshoot against the effect outside the zero-effect region."""
     e9 = SU.effect_size()
     deltas = [0.1, 0.2, 0.3, 0.5, 1, 2]
     fig, ax = plt.subplots(1, 1, figsize=(3.6, 2.9))

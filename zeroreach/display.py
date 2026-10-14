@@ -1,4 +1,4 @@
-"""Aggregates behind the region displays (Sections 1, 6.5, 6.7 and 6.8).
+"""Aggregates behind the simulation and real-data region displays.
 
 The displays show which units are covered by candidate regions of the reported size that are not rejected.
 They are descriptive, not confidence sets for the location of a zero-effect region. For the real data only

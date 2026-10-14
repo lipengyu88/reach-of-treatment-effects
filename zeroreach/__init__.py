@@ -5,7 +5,7 @@ and Yao Zhang. Local Fisher randomization tests over candidate regions of a pre-
 (blocks of consecutive units in one dimension, nearest-neighbour regions in two) are inverted into an
 upper confidence bound for the size of the largest region in which treatment has no effect.
 
-Modules: kernels (compiled kernels), search (evaluators and searches of Table 1), grids (searched grids
+Modules: kernels (compiled kernels), search (local-test evaluators and searches), grids (searched grids
 and inversion), randomization (draws), designs (simulation designs), realdata (readers for the three
 experiments), api (upper_bound, the whole procedure for one dataset).
 """

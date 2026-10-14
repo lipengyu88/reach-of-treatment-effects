@@ -1,4 +1,4 @@
-"""The three experiments of Sections 1, 6.7 and 6.8.
+"""Gerber-Green-Larimer, ACTG 175 and AI-assisted writing analyses with the centred statistic.
 
 ggl   Gerber-Green-Larimer social-pressure experiment: households of the Neighbors and Control groups ordered
       by the mean age of their members (ties by cell, then household), the recorded design (permutation
@@ -8,11 +8,11 @@ ggl   Gerber-Green-Larimer social-pressure experiment: households of the Neighbo
 actg  ACTG 175, arms 0 and 1, ordered by baseline CD4 count (ties by patient id), randomization within the
       three strata, M = 5000 draws with seed 20260520, all integer sizes; raw 20-week CD4 count and its change
       from baseline. --stability repeats it for M in {500, 1000, 2000, 5000} and seeds 20260520-22;
-      --two-covariates adds age as a second covariate (Section 6.8).
+      --two-covariates adds age as a second covariate.
 noy   Noy-Zhang writing experiment: participants of the linear and convex incentive groups ordered by the
       grade of their first task, complete randomization within the analysed sample, M = 5000 draws with
       seed 20260918, all integer sizes; grade of the second task and minus the time spent on it. --stability
-      adds three seeds at M = 5000, three at M = 50000 and one at M = 200000 (Appendix F.3).
+      adds three seeds at M = 5000, three at M = 50000 and one at M = 200000.
 
 The data are not included (data/README.md); shared outputs are aggregates only. The default all-integer
 destination is results/real_data/<dataset>; --grid paper uses results/paper_grid_reproduction/real_data/<dataset>.

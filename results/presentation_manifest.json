@@ -365,11 +365,11 @@
   "line_endings": "All published CSV/JSON use LF; checksums are valid in clean Git checkouts.",
   "coverage": "All tracked result inputs used by default figure/table generation, including retained rates, timing, warm-start and effect-size series.",
   "generators": {
-    "plot_figures.py": "920ac4a909f6bb4431ce4082f736cf18eebd204c0ce850ee6e750ebe6263745e",
-    "make_tables.py": "287bf69caa03c1e208969d6dfec6bb4d153ac340a208910ed380cfc732e5945c",
-    "zeroreach/summaries.py": "d90199a098b250dd091ae67614db07f4dfdb429c2516774c9494da947f20f004",
+    "plot_figures.py": "3aa1d46ca6076cada71ddcbd316ae3413ee21f0c4479112bea580240254434e1",
+    "make_tables.py": "493e542880439927c0439d64f75e5e4bd8487f30bb66924b9c7b588d1f65c3dc",
+    "zeroreach/summaries.py": "f12d3d115224d785950cbf135d9311b329ca5006fcc29f74b88f813f857abae0",
     "zeroreach/style.py": "65b17d305d1473bc5cb382c1d485e22415bc07896d611a156f16b35128c3caec",
-    "zeroreach/display.py": "24ff414f9e932af1eeeb028d6723b5cd02c5c9f4426352ef8b2289ab0750306f"
+    "zeroreach/display.py": "1bb28b7f50a94b3d795aef4a5124b8ad83d36d4d9f4fc15d2bc9a98f7e854db8"
   },
   "artifacts": {
     "figures/fig_coverage_stress.pdf": "cfb89661fed8ad4e980ccf536ada29134e9a04488419af6b8d7253f6f0b8833a",
@@ -411,11 +411,15 @@
     "tables/warm_start.tex": "d4b1dbd2043a5eed32f17744afd562a57fbc5fcb570b575fe943635a63b29126"
   },
   "validation": {
-    "figures_match_paper": "All 17 PDF assets have identical 150dpi pixels and extracted text to the accepted manuscript assets.",
+    "figures_match_paper": "All 17 PDF assets have identical 150dpi pixels and extracted text to the reference manuscript assets.",
     "public_input_rebuild": "Default scripts succeed using published compact inputs; 15 data-generated PDF assets are regenerated. ACTG 2D scatter and analytic schematic are explicitly retained.",
-    "tables": "All 20 CSV/TeX files match the complete local-input rebuild byte-for-byte; updated simulation tabular fragments match the accepted manuscript tables.",
-    "full_paths": "Full per-size paths retained in original local bundles, not included in this compact release.",
+    "tables": "All 20 CSV/TeX files match the complete local-input rebuild byte-for-byte; updated simulation tabular fragments match the reference manuscript tables.",
+    "full_paths": "Evaluated p-value paths recorded by the main calibration, two-region, shared-versus-conditional and real-data runners are retained in the original run bundles; they are omitted from this compact release.",
     "deterministic_pdf_regeneration": "CreationDate and ModDate omitted; public-only and full-local rebuilds produce identical PDF bytes in the recorded environment.",
-    "actg_scatter_override": "--actg-scatter-input accepts the matching local NPZ; invalid rank shape and incorrect mask size are rejected."
+    "actg_scatter_override": "--actg-scatter-input accepts the matching local NPZ; invalid rank shape and incorrect mask size are rejected.",
+    "reference_manuscripts": {
+      "arxiv": "48fe142fa811d18e12d74f566e8620d0fbb48fd0",
+      "biometrika": "0033d00d0ff3962426b534c4354043ea8f76a4af"
+    }
   }
 }
