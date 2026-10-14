@@ -2,8 +2,9 @@
 
 Code and reproducibility materials for the paper by Pengyu Li and Yao Zhang. This revision contains
 the corrected **uncentred versus within-region-centred comparison** and the completed
-**all-integer-size analyses**. Figure and table numbers below follow the current arXiv manuscript;
-the Biometrika version has not yet been synchronized with this revision.
+**all-integer-size analyses**. These results are included in both manuscript versions. The artifact
+mapping below follows arXiv revision `d8b6b46` and Biometrika revision `0033d00` (14 October 2026);
+subsequent editorial changes may change the numbering. Use the asset names to identify the outputs.
 
 The method bounds the size of the largest candidate covariate region in which every unit has zero
 treatment effect. Regions are consecutive blocks in a one-dimensional ordering, or nearest-neighbour
@@ -82,6 +83,7 @@ plot_figures.py regenerate figures from retained results
 make_tables.py  regenerate tables from retained results
 data/           provider instructions, checksums and acquisition script; raw data are ignored
 tests/          statistical oracles, search/configuration checks and representative result checks
+REPRODUCIBILITY.md  scope of regeneration, reruns and validation; implementation details
 ```
 
 Main calibration inputs are in `results/centering_comparison/full_integer/calibration/centre10/`.
@@ -117,26 +119,31 @@ python plot_figures.py --only real --actg-scatter-input results/real_data/actg/l
 
 The plot checks the supplied arrays against the retained result summary. The table below lists analysis
 options; the complete commands further below give fresh output directories for real-data reruns.
+[REPRODUCIBILITY.md](REPRODUCIBILITY.md) distinguishes regenerating outputs from rerunning experiments
+and explains the implementation details needed to interpret these operations.
 
-| Current arXiv item | Content | Figure/table files | From-scratch runner |
-|---|---|---|---|
-| Figure 1 | AI-assisted writing | `fig_real_noy_regions.pdf` | `run_real_data.py --dataset noy --stability` |
-| Table 1 | Computational costs | Analytical table in manuscript | Not a numerical experiment |
-| Figure 2 | Non-rejected regions, both dimensions | `fig_d{1,2}_regions_n7000.pdf` | `run_calibration.py` |
-| Figure 3 | Centring comparison, coverage and bound | `fig_d{1,2}_calibration_{coverage,ratio}.pdf` | `run_calibration.py` |
-| Figure 4 | Computational time | `fig_d{1,2}_computation_time.pdf` | `run_timing.py --experiment methods ...` |
-| Figure 5 | Gerber–Green–Larimer | `fig_real_ggl_regions.pdf` | `run_ggl_integer.py` (below) |
-| Figure 6, Table 2 | ACTG one covariate | `fig_real_actg175_regions.pdf`, `actg_twoarm.*` | `run_real_data.py --dataset actg --stability` |
-| Figure 7 | ACTG two covariates | `fig_real_actg175_2d_regions.pdf` | `run_real_data.py --dataset actg --two-covariates` |
-| Figure 8, Table 5 | Convergence rates | `fig_rate_of_convergence.pdf`, `rates.*` | `run_supplementary.py --experiment rates` |
-| Figure 9 | Boundary geometry | `knn_boundary_cap.pdf` | Author-drawn schematic |
-| Figure 10, Table 3 | Stress designs | `fig_coverage_stress.pdf`, `stress.*` | `run_supplementary.py --experiment stress` |
-| Table 4 | Two zero-effect regions | `two_regions.*` | `run_two_regions.py` |
-| Figure 11, Table 6 | Gaussian warm start and draw count | `fig_warm_start_vs_M.pdf`, `warm_start.*` | `run_timing.py --experiment warm_start` |
-| Table 7 | Dispersed/cancelling effects | `dispersed.*` | `run_supplementary.py --experiment dispersed` |
-| Table 8 | Two-sided statistic | `two_sided.*` | `run_supplementary.py --experiment two_sided` |
-| Table 9 | Shared versus conditional tests | `shared_vs_conditional.*` | `run_supplementary.py --experiment shared_vs_conditional` |
-| Figure 12, Table 10 | Effect size | `fig_effect_size.pdf`, `effect_size.*` | `run_supplementary.py --experiment effect_size` |
+| arXiv item | Biometrika item | Content | Figure/table files | From-scratch runner |
+|---|---|---|---|---|
+| Figure 1 | Figure 1 | AI-assisted writing | `fig_real_noy_regions.pdf` | `run_real_data.py --dataset noy --stability` |
+| Table 1 | Table 1 | Computational costs | Analytical table in manuscript | Not a numerical experiment |
+| Figure 2 | Figure S6 | Non-rejected regions, both dimensions | `fig_d{1,2}_regions_n7000.pdf` | `run_calibration.py` |
+| Figure 3 | Figure 2 | Centring comparison, coverage and bound | `fig_d{1,2}_calibration_{coverage,ratio}.pdf` | `run_calibration.py` |
+| Figure 4 | Figure S7 | Computational time | `fig_d{1,2}_computation_time.pdf` | `run_timing.py --experiment methods ...` |
+| Figures 5 and 8 | Figure 3 | Gerber–Green–Larimer | `fig_real_ggl_regions.pdf` | `run_ggl_integer.py` (below) |
+| Figures 6 and 9; Table 2 | Figure S8; Table S1 | ACTG one covariate | `fig_real_actg175_regions.pdf`, `actg_twoarm.*` | `run_real_data.py --dataset actg --stability` |
+| Figures 7 and 10 | Figure S9 | ACTG two covariates | `fig_real_actg175_2d_regions.pdf` | `run_real_data.py --dataset actg --two-covariates` |
+| Figure 11; Table 5 | Figure S1; Table S4 | Convergence rates | `fig_rate_of_convergence.pdf`, `rates.*` | `run_supplementary.py --experiment rates` |
+| Figure 12 | Figure S2 | Boundary geometry | `knn_boundary_cap.pdf` | Author-drawn schematic |
+| Figure 13; Table 3 | Figure S3; Table S2 | Stress designs | `fig_coverage_stress.pdf`, `stress.*` | `run_supplementary.py --experiment stress` |
+| Table 4 | Table S3 | Two zero-effect regions | `two_regions.*` | `run_two_regions.py` |
+| Figure 14; Table 6 | Figure S4; Table S5 | Gaussian warm start and draw count | `fig_warm_start_vs_M.pdf`, `warm_start.*` | `run_timing.py --experiment warm_start` |
+| Table 7 | Table S6 | Dispersed/cancelling effects | `dispersed.*` | `run_supplementary.py --experiment dispersed` |
+| Table 8 | Table S7 | Two-sided statistic | `two_sided.*` | `run_supplementary.py --experiment two_sided` |
+| Table 9 | Table S8 | Shared versus conditional tests | `shared_vs_conditional.*` | `run_supplementary.py --experiment shared_vs_conditional` |
+| Figure 15; Table 10 | Figure S5; Table S9 | Effect size | `fig_effect_size.pdf`, `effect_size.*` | `run_supplementary.py --experiment effect_size` |
+
+The cited arXiv revision retains two copies of the GGL and ACTG displays. Each pair uses the same
+asset and numerical result; it is not a separate experiment. Biometrika includes one copy of each.
 
 Real-data headline bounds from the included summaries are:
 

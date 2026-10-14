@@ -40,6 +40,10 @@ Follow each provider's terms of use. The analysed samples are built by `zeroreac
   ties broken by `pidnum`; outcomes `cd420` and `cd420 - cd40`; randomization within `strat`.
 - **Noy–Zhang.** The cleaning steps of the authors' code (`2 - clean.do`): finished and consenting
   participants, the six manual exclusions, both quality-check waves, and exclusion of participants
-  with a recorded grader session before the date of their own task survey. Grades are exact means of
+  whose earliest recorded grader-session start date precedes their task-survey start date. Both dates
+  are obtained by normalizing the corresponding `startdate` fields to calendar dates; the filter does
+  not compare task-completion timestamps. Grade eligibility also excludes retries, the test grader,
+  missing scores, and grader sessions dated after the grader's first task-survey date. Eligible scores
+  must be integers from 1 to 7. Grades are exact means of
   the eligible original grades. The analysed groups are the
   linear and convex incentive groups (352 participants for the grade of the second task, 353 for its time).

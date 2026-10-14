@@ -1,9 +1,10 @@
-"""Draw every figure of the paper from the files in results/ (a few minutes; no experiment is rerun).
+"""Regenerate statistical plots from retained results; no randomization experiment is rerun.
 
 usage: python plot_figures.py [--out figures] [--only NAME ...] [--calibration-results DIR]
 The boundary-cap schematic is authored separately and kept as figures/knn_boundary_cap.pdf.
-The ACTG 175 two-dimensional scatter shows unit-level data: it is redrawn only when
-results/real_data/actg/local/ exists (python runners/run_real_data.py --dataset actg --two-covariates).
+The ACTG 175 two-dimensional scatter requires local provider-derived arrays, supplied via
+--actg-scatter-input or the default local path. Otherwise the supplied PDF is preserved.
+See README.md for the provider-data rerun command and REPRODUCIBILITY.md for validation scope.
 """
 import argparse
 import math
