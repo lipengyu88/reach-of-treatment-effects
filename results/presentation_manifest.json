@@ -418,7 +418,7 @@
     "deterministic_pdf_regeneration": "CreationDate and ModDate omitted; public-only and full-local rebuilds produce identical PDF bytes in the recorded environment.",
     "actg_scatter_override": "--actg-scatter-input accepts the matching local NPZ; invalid rank shape and incorrect mask size are rejected.",
     "reference_manuscripts": {
-      "arxiv": "48fe142fa811d18e12d74f566e8620d0fbb48fd0",
+      "arxiv": "417968908e732354d0b53b9334c15b10c8e94089",
       "biometrika": "0033d00d0ff3962426b534c4354043ea8f76a4af"
     }
   }

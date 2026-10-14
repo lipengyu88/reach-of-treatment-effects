@@ -9,6 +9,10 @@ venv/
 .env.*
 !.env.example
 
+# Local tool settings and caches; retain shared automation configuration.
+.*/
+!.github/
+
 # data from the providers (see data/README.md) and unit-level files derived from them
 data/raw/
 results/real_data/*/local/

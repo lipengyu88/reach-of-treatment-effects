@@ -8,10 +8,11 @@ cover every size 1,...,n without gaps or overlap. Thus no monotonicity of P_k is
 assumed and no sparse-grid certificate is used to limit the search.
 
 Example (NUMBA_NUM_THREADS=1 and single-thread BLAS for each scan process):
-  python runners/run_ggl_integer.py prepare --data-dir data/raw --shared /tmp/ggl
-  python runners/run_ggl_integer.py scan --shared /tmp/ggl --lo 1 --hi 60000 --out /tmp/part1
-  python runners/run_ggl_integer.py scan --shared /tmp/ggl --lo 60001 --hi 119999 --out /tmp/part2
-  python runners/run_ggl_integer.py merge --shared /tmp/ggl --parts /tmp/part1 /tmp/part2 --out results/full_integer/ggl
+  run_out="results/reproductions/run_01/real_data/ggl"
+  python runners/run_ggl_integer.py prepare --data-dir data/raw --shared "$run_out/shared"
+  python runners/run_ggl_integer.py scan --shared "$run_out/shared" --lo 1 --hi 60000 --out "$run_out/parts/part1"
+  python runners/run_ggl_integer.py scan --shared "$run_out/shared" --lo 60001 --hi 119999 --out "$run_out/parts/part2"
+  python runners/run_ggl_integer.py merge --shared "$run_out/shared" --parts "$run_out/parts/part1" "$run_out/parts/part2" --out "$run_out/summary"
 
 Draw generation, integer turnout scaling, age order and p-value ties are
 identical to run_real_data.py. Scan reuses realdata.int_window_counts in small
