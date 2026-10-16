@@ -1,9 +1,12 @@
-# The reach of treatment effects: randomization inference for zero-effect regions
+# The Reach of Treatment Effects: Randomization Inference for Zero-Effect Regions
 
 Python implementation and reproducibility materials for the paper by Pengyu Li and Yao Zhang.
+
+**Paper:** [The Reach of Treatment Effects: Randomization Inference for Zero-Effect Regions](https://arxiv.org/abs/2610.20759), arXiv:2610.20759.
+
 The experiments compare uncentred and within-region-centred statistics and search all integer region
-sizes. The artifact mapping below follows arXiv revision `4179689` and Biometrika revision `0033d00`
-(14 October 2026). Use asset names to identify outputs when manuscript numbering changes.
+sizes. The artifact mapping below follows the arXiv paper and the current JRSSB manuscript
+(16 October 2026). Use asset names to identify outputs when manuscript numbering changes.
 
 The method bounds the size of the largest candidate covariate region in which every unit has zero
 treatment effect. Regions are consecutive blocks in a one-dimensional ordering, or nearest-neighbour
@@ -39,8 +42,10 @@ it is not the default or the basis of the revised results.
 
 ## Installation and quick start
 
+Use Python 3.11 with the frozen environment below.
+
 ```bash
-python -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-frozen.txt
 python -m pytest -q
@@ -122,25 +127,24 @@ options; the complete commands further below give fresh output directories for r
 [REPRODUCIBILITY.md](REPRODUCIBILITY.md) distinguishes regenerating outputs from rerunning experiments
 and explains the implementation details needed to interpret these operations.
 
-| arXiv item | Biometrika item | Content | Figure/table files | From-scratch runner |
+| arXiv item | JRSSB item | Content | Figure/table files | From-scratch runner |
 |---|---|---|---|---|
 | Figure 1 | Figure 1 | AI-assisted writing | `fig_real_noy_regions.pdf` | `run_real_data.py --dataset noy --stability` |
-| Table 1 | Table 1 | Computational costs | Analytical table in manuscript | Not a numerical experiment |
-| Figure 2 | Figure S6 | Non-rejected regions, both dimensions | `fig_d{1,2}_regions_n7000.pdf` | `run_calibration.py` |
+| Table 1 | Table S1 | Computational costs | Analytical table in manuscript | Not a numerical experiment |
+| Figure 2 | Figure S3 | Non-rejected regions, both dimensions | `fig_d{1,2}_regions_n7000.pdf` | `run_calibration.py` |
 | Figure 3 | Figure 2 | Centring comparison, coverage and bound | `fig_d{1,2}_calibration_{coverage,ratio}.pdf` | `run_calibration.py` |
-| Figure 4 | Figure S7 | Computational time | `fig_d{1,2}_computation_time.pdf` | `run_timing.py --experiment methods ...` |
+| Figure 4 | Figure S4 | Computational time | `fig_d{1,2}_computation_time.pdf` | `run_timing.py --experiment methods ...` |
 | Figure 5 | Figure 3 | Gerber–Green–Larimer | `fig_real_ggl_regions.pdf` | `run_ggl_integer.py` (below) |
-| Figure 6; Table 2 | Figure S8; Table S1 | ACTG one covariate | `fig_real_actg175_regions.pdf`, `actg_twoarm.*` | `run_real_data.py --dataset actg --stability` |
-| Figure 7 | Figure S9 | ACTG two covariates | `fig_real_actg175_2d_regions.pdf` | `run_real_data.py --dataset actg --two-covariates` |
-| Figure 8; Table 5 | Figure S1; Table S4 | Convergence rates | `fig_rate_of_convergence.pdf`, `rates.*` | `run_supplementary.py --experiment rates` |
-| Figure 9 | Figure S2 | Boundary geometry | `knn_boundary_cap.pdf` | Author-drawn schematic |
-| Figure 10; Table 3 | Figure S3; Table S2 | Stress designs | `fig_coverage_stress.pdf`, `stress.*` | `run_supplementary.py --experiment stress` |
-| Table 4 | Table S3 | Two zero-effect regions | `two_regions.*` | `run_two_regions.py` |
-| Figure 11; Table 6 | Figure S4; Table S5 | Gaussian warm start and draw count | `fig_warm_start_vs_M.pdf`, `warm_start.*` | `run_timing.py --experiment warm_start` |
-| Table 7 | Table S6 | Dispersed/cancelling effects | `dispersed.*` | `run_supplementary.py --experiment dispersed` |
-| Table 8 | Table S7 | Two-sided statistic | `two_sided.*` | `run_supplementary.py --experiment two_sided` |
-| Table 9 | Table S8 | Shared versus conditional tests | `shared_vs_conditional.*` | `run_supplementary.py --experiment shared_vs_conditional` |
-| Figure 12; Table 10 | Figure S5; Table S9 | Effect size | `fig_effect_size.pdf`, `effect_size.*` | `run_supplementary.py --experiment effect_size` |
+| Figure 6 | Figure S5 | ACTG one covariate | `fig_real_actg175_regions.pdf` | `run_real_data.py --dataset actg --stability` |
+| Figure 7 | Figure S6 | ACTG two covariates | `fig_real_actg175_2d_regions.pdf` | `run_real_data.py --dataset actg --two-covariates` |
+| Figure 8 | Figure S1 | Boundary geometry | `knn_boundary_cap.pdf` | Author-drawn schematic |
+| Figure 9 | Figure S2 | Convergence rates | `fig_rate_of_convergence.pdf` | `run_supplementary.py --experiment rates` |
+
+Additional diagnostics and numerical tables are retained with the code, including stress designs,
+two zero-effect regions, Gaussian warm starts, dispersed or cancelling effects, two-sided statistics,
+shared versus conditional tests, and effect-size comparisons. These extend the current paper;
+they do not correspond to additional numbered figures or tables in the manuscript above.
+The `actg_twoarm.*` and `rates.*` tables provide numerical summaries for the corresponding analyses.
 
 Real-data headline bounds from the included summaries are:
 

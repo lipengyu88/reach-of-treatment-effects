@@ -13,7 +13,7 @@ directories are the stable identifiers.
 | Run an experiment from scratch | Recorded design and seeds; the appropriate runner; provider files for real data | New randomization calculations that can be compared with the retained results. This can require substantial CPU time. |
 | Check the implementation | `python -m pytest -q` | Statistical oracles, search/configuration checks, and selected small replications. Passing tests do not establish a fresh replication of every reported experiment. |
 
-Run commands from the repository root after installing `requirements-frozen.txt` as described in the
+Run commands from the repository root using Python 3.11 after installing `requirements-frozen.txt` as described in the
 README. To rebuild into a new directory without replacing the supplied figures and tables:
 
 ```bash
@@ -96,6 +96,33 @@ CPU/thread settings, and seeds. Compare the run configuration and statistic iden
 comparing bounds or aggregating results. Seeds alone do not ensure bitwise agreement across
 linear-algebra environments; supplementary OLS diagnostics are particularly sensitive to this.
 The recorded environment and numerical tie rules should be preserved when exact agreement is needed.
+
+### GGL descriptive difference and standard error
+
+The compact GGL summary retains the difference in means but does not store its standard error.
+After obtaining and verifying the provider file as described in [data/README.md](data/README.md),
+the following calculates both from the full analysed household sample without rerunning the
+randomization search:
+
+```bash
+python - <<'PY'
+import numpy as np
+from zeroreach.realdata import load_ggl
+from runners.run_real_data import diff_in_means
+
+households, _ = load_ggl('data/raw/ggl/ggl_individuals.dta')
+y = (households.vsum / households.members).to_numpy()
+z = households.z.to_numpy()
+summary = diff_in_means(y, z, np.ones(len(y), dtype=bool))
+print(f"Difference: {100 * summary['diff']:.2f} percentage points; "
+      f"SE: {100 * summary['se']:.2f} percentage points")
+PY
+```
+
+With the provider checksum specified in this repository, the output is a difference of
+8.48 percentage points and a standard error of 0.34 percentage points.
+
+### Validation coverage
 
 The test suite includes direct statistic calculations on small examples and selected retained-result
 replications; [test_results.py](tests/test_results.py) makes the latter scope explicit. It does not
