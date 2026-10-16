@@ -5,13 +5,13 @@ Python implementation and reproducibility materials for the paper by Pengyu Li a
 **Paper:** [The Reach of Treatment Effects: Randomization Inference for Zero-Effect Regions](https://arxiv.org/abs/2610.20759), arXiv:2610.20759.
 
 The experiments compare uncentred and within-region-centred statistics and search all integer region
-sizes. The artifact mapping below follows the arXiv paper and the current JRSSB manuscript
-(16 October 2026). Use asset names to identify outputs when manuscript numbering changes.
+sizes. The table below maps the results to the arXiv paper and JRSSB manuscript
+(16 October 2026).
 
 The method bounds the size of the largest candidate covariate region in which every unit has zero
 treatment effect. Regions are consecutive blocks in a one-dimensional ordering, or nearest-neighbour
-sets in normalized ranks in two dimensions. The displayed non-rejected regions are descriptive,
-not confidence sets for their locations.
+sets in normalized ranks in two dimensions. Plots show the locations of non-rejected regions
+as descriptive displays.
 
 ## Statistical definitions and search
 
@@ -22,23 +22,19 @@ raw (uncentred):     sum_{i in B} (Z_i - pi) Y_i
 adjusted (centred):  sum_{i in B} (Z_i - pi) (Y_i - mean_B(Y))
 ```
 
-Both statistics use the same original outcomes, assignments and Monte Carlo draws. No OLS fit enters
-this comparison. The API and the real-data analyses use the centred statistic. In the supplementary
-stress and two-region diagnostics, the legacy field `raw` means the centred statistic on the original
-outcome. Independent OLS residuals are labelled `indep` in stress and `adjusted` in the two-region
-records; stress also includes an `insample` OLS branch. The main comparison carries explicit statistic
-labels; the separate two-region runner and aggregation checks reject mixing the two conventions.
-In-sample OLS in the stress experiment is a diagnostic and does not inherit the local-null validity
-guarantee of the main statistic.
+Both statistics use the same original outcomes, assignments and Monte Carlo draws; the comparison
+changes only within-region centring. The API and real-data analyses use the centred statistic.
+In the additional stress and two-region diagnostics, `raw` denotes the centred statistic on the
+original outcome. Independent OLS residuals are labelled `indep` in stress and `adjusted` in the
+two-region records. The `insample` OLS branch in the stress experiment is exploratory. The main
+analyses use original outcomes; the independent-residual diagnostics use separately fitted models.
+Run metadata and aggregation checks identify the statistic used in each experiment.
 
 The default candidate domain is **1, ..., n**. Exact descending search stops at the largest
-non-rejected size: all greater integer sizes have been checked, and smaller sizes cannot change the
-maximum. The evaluated path therefore need not contain n entries. The returned `bound` and
-`certificate` coincide for this search. Bisection and its Gaussian warm start also query integer sizes,
-but require the paper's monotonicity condition; they can return a different bound from descending
-search. They are retained for the computational comparisons, not used for the new primary bounds.
-An explicitly requested `grid='paper'` or `--grid paper` reproduces the historical sparse-grid option;
-it is not the default or the basis of the revised results.
+non-rejected size after checking every greater integer size. The returned `bound` and `certificate`
+coincide for this search. Primary analyses use exact descending search. The timing comparisons also
+include bisection and a Gaussian warm start, which query integer sizes under the paper's monotonicity
+condition. Set `grid='paper'` or `--grid paper` to select the optional sparse candidate grid.
 
 ## Installation and quick start
 
@@ -87,12 +83,11 @@ plot_figures.py regenerate figures from retained results
 make_tables.py  regenerate tables from retained results
 data/           provider instructions, checksums and acquisition script; raw data are ignored
 tests/          statistical oracles, search/configuration checks and representative result checks
-REPRODUCIBILITY.md  scope of regeneration, reruns and validation; implementation details
+REPRODUCIBILITY.md  reproduction commands, result formats and implementation notes
 ```
 
 Main calibration inputs are in `results/centering_comparison/full_integer/calibration/centre10/`.
-The two-region diagnostic is in `results/calibration/two_regions/`. Completed runs are kept distinct
-from the `results/smoke/` and `results/paper_grid_reproduction/` outputs.
+The two-region diagnostic is in `results/calibration/two_regions/`.
 
 ## Regenerate figures and tables without rerunning experiments
 
@@ -102,20 +97,17 @@ python make_tables.py
 ```
 
 The included compact simulation records retain one row per repetition, with the bounds, coverage,
-truth, seeds and configuration needed for aggregation. Large evaluated-p-value paths and checkpoint
-files are retained separately by the authors, rather than included in this bundle. The source hashes
-and compact-file mapping are recorded in `results/presentation_manifest.json`. The main calibration,
-two-region and shared-versus-conditional runners, and the real-data runners, save evaluated p-value
-paths in their full outputs. Other runners retain experiment-specific summaries rather than complete
-paths. Rebuilding a compact summary does not rerun the randomization calculations.
+truth, seeds and configuration needed for aggregation. Source hashes and the compact-file mapping
+are recorded in `results/presentation_manifest.json`. The main calibration, two-region,
+shared-versus-conditional and real-data runners produce evaluated p-value paths; the other runners
+save experiment-specific summaries. The authors retain full run archives, including large paths
+and checkpoint files, separately from the compact results distributed here.
 
-All statistical plots except the ACTG two-covariate scatter can be redrawn from the included aggregate
-or synthetic inputs. The scatter uses individual-level covariates: its final PDF is included, but
-redrawing it requires the provider data and a local two-covariate run. Without the ignored local
-arrays, the figure script explicitly preserves that supplied PDF.
-It does not reconstruct individual observations from aggregates. The boundary-geometry schematic is
-an author-drawn asset, not an output of the numerical experiments. After obtaining and checking the
-provider data, rebuild the scatter in a new ignored output directory:
+The plot command regenerates 15 statistical PDFs from the included aggregate or synthetic inputs.
+The ACTG two-covariate scatter is supplied as a PDF and can be redrawn using the provider data and
+a local two-covariate run. The figure script preserves the supplied PDF when local plotting arrays
+are absent. The boundary-geometry schematic is supplied as an author-drawn PDF. To rebuild the
+ACTG scatter after obtaining and checking the provider data:
 
 ```bash
 python runners/run_real_data.py --dataset actg --two-covariates-only --out results/real_data/actg/local/scatter_rerun
@@ -124,13 +116,12 @@ python plot_figures.py --only real --actg-scatter-input results/real_data/actg/l
 
 The plot checks the supplied arrays against the retained result summary. The table below lists analysis
 options; the complete commands further below give fresh output directories for real-data reruns.
-[REPRODUCIBILITY.md](REPRODUCIBILITY.md) distinguishes regenerating outputs from rerunning experiments
-and explains the implementation details needed to interpret these operations.
+[REPRODUCIBILITY.md](REPRODUCIBILITY.md) gives further reproduction commands and implementation notes.
 
 | arXiv item | JRSSB item | Content | Figure/table files | From-scratch runner |
 |---|---|---|---|---|
 | Figure 1 | Figure 1 | AI-assisted writing | `fig_real_noy_regions.pdf` | `run_real_data.py --dataset noy --stability` |
-| Table 1 | Table S1 | Computational costs | Analytical table in manuscript | Not a numerical experiment |
+| Table 1 | Table S1 | Computational costs | Analytical table in manuscript | Analytical derivation |
 | Figure 2 | Figure S3 | Non-rejected regions, both dimensions | `fig_d{1,2}_regions_n7000.pdf` | `run_calibration.py` |
 | Figure 3 | Figure 2 | Centring comparison, coverage and bound | `fig_d{1,2}_calibration_{coverage,ratio}.pdf` | `run_calibration.py` |
 | Figure 4 | Figure S4 | Computational time | `fig_d{1,2}_computation_time.pdf` | `run_timing.py --experiment methods ...` |
@@ -142,8 +133,7 @@ and explains the implementation details needed to interpret these operations.
 
 Additional diagnostics and numerical tables are retained with the code, including stress designs,
 two zero-effect regions, Gaussian warm starts, dispersed or cancelling effects, two-sided statistics,
-shared versus conditional tests, and effect-size comparisons. These extend the current paper;
-they do not correspond to additional numbered figures or tables in the manuscript above.
+shared versus conditional tests, and effect-size comparisons. These provide complementary analyses.
 The `actg_twoarm.*` and `rates.*` tables provide numerical summaries for the corresponding analyses.
 
 Real-data headline bounds from the included summaries are:
@@ -162,8 +152,8 @@ analysed sample. Reported location displays and post-selection mean differences 
 
 ## Run experiments from scratch
 
-These commands can require substantial CPU time, especially full-integer GGL and conditional
-randomization. Use `--smoke` on the simulation and timing runners for small checks.
+Use `--smoke` on the simulation and timing runners for a small initial run. Full-integer GGL and
+conditional randomization are the most computationally intensive experiments.
 Choose a new run directory so that the supplied results remain available for comparison. All outputs
 under `results/reproductions/` are ignored by Git. Set `run_out` once in the shell used for the commands
 below; use a different directory for each new configuration or independent timing run.
@@ -173,14 +163,14 @@ run_out="results/reproductions/run_01"
 
 # Main comparison: same Y, Z and randomization draws; only centring changes.
 python runners/run_calibration.py --design centre10 --out "$run_out/calibration/centre10"
-# Separate supplementary diagnostic; the paper table reports centred original outcomes.
+# Two-region diagnostic with centred original outcomes.
 python runners/run_two_regions.py --out "$run_out/calibration/two_regions"
 
 python runners/run_supplementary.py --experiment stress --out "$run_out/supplementary/stress"
 python runners/run_supplementary.py --experiment dispersed --out "$run_out/supplementary/dispersed"
 python runners/run_supplementary.py --experiment two_sided --out "$run_out/supplementary/two_sided"
 python runners/run_supplementary.py --experiment shared_vs_conditional --out "$run_out/supplementary/shared_vs_conditional"
-# These already used all integer sizes and were retained in this revision.
+# Convergence rates and effect-size comparisons.
 python runners/run_supplementary.py --experiment rates --out "$run_out/supplementary/rates"
 python runners/run_supplementary.py --experiment effect_size --out "$run_out/supplementary/effect_size"
 
@@ -196,26 +186,24 @@ python runners/run_real_data.py --dataset actg --stability --two-covariates --ou
 python runners/run_real_data.py --dataset noy --stability --out "$run_out/real_data/noy"
 ```
 
-The simulation and timing runners resume from task files in `<out>/records/`; the compact
-`details.csv` files included in the repository are not resume checkpoints. A fresh checkout therefore
-runs the requested tasks again, even if a summary for that experiment is already present. The main
-calibration, two-region and supplementary runners validate existing record configurations before
-skipping completed tasks. The timing runner skips existing filenames; use a new directory after
-changing the draw count, hardware or thread settings. Reuse a run directory only to continue the same
-configuration. `--collect` must point to the directory containing that run's records, and rewrites its
-summary files. The ACTG and writing runners reject directories that already contain results; start
-them with a new `--out` instead of attempting to resume.
+The simulation and timing runners resume from task files in `<out>/records/`. A fresh checkout starts
+new runs; its included `details.csv` files provide comparison results. The main calibration,
+two-region and supplementary runners validate record configurations before skipping completed tasks.
+The timing runner skips existing filenames, so use a new directory after changing the draw count,
+hardware or thread settings. Reuse a run directory to continue the same configuration. Use
+`--collect --out <run-directory>` to rebuild summaries from that directory's `records/` files.
+Start each ACTG or writing analysis with a fresh `--out` directory.
 
 The timing commands above illustrate individual settings. For the full series, use both dimensions
 and n = 1000, 5000, 10000, 15000, 20000 for all four
 methods. Shared methods use ten datasets per setting. Conditional descending uses one dataset per
-setting, timed three times at n = 1000 and once at larger n. The original CPU times depend on the
-reported processor and thread settings; a new machine should not be expected to reproduce them.
+setting, timed three times at n = 1000 and once at larger n. Record the processor and thread settings
+alongside the measured CPU times.
 
 ### Full-integer GGL search
 
-The specialized runner has three stages. The following is a single-range reproduction of the primary
-result; it is an expensive full experiment, not a smoke command.
+The specialized runner has three stages. The following runs the full primary experiment as a single
+range over all 119,999 candidate sizes:
 
 ```bash
 run_out="results/reproductions/run_01"
@@ -231,8 +219,8 @@ size is found; the merged maximum is still exact without a p-value monotonicity 
 For the fifteen sensitivity configurations, use seeds 20260526, 20260527 and 20260528 with each of
 `A_primary`, `B_reverse`, `C_household_size`, `D_hash1`, `E_hash2`, choosing a separate shared/parts/output
 location for each. Same-seed assignments can be reused with `prepare --reuse-shared` after validation.
-The old `run_real_data.py --dataset ggl` entry point supports only explicit `--grid paper`; it is not
-the primary full-integer analysis.
+Use `run_ggl_integer.py` for the primary full-integer analysis. The optional sparse-grid analysis is
+available through `run_real_data.py --dataset ggl --grid paper`.
 
 ## Reproducibility details
 
@@ -241,29 +229,30 @@ the primary full-integer analysis.
 - Primary real-data seeds are 20260526 (GGL), 20260520 (ACTG) and 20260918 (writing), with M = 5000.
   ACTG and writing stability files retain the additional seeds and draw counts stated in the paper.
 - The kernels use compensated sums and explicit numerical tie handling. Tests compare them with
-  independently calculated statistics and check search identities. Identical seeds alone do not
-  guarantee bitwise equality across software/BLAS environments; retain the supplied numerical rules.
-- Main centring requires no fitted linear model. Supplementary OLS diagnostics can depend on the
-  linear-algebra environment. The runners check BLAS calculations before expensive work. Use a BLAS
-  build compatible with the host CPU; the `OPENBLAS_CORETYPE=SKYLAKEX` workaround used on the original
-  Intel servers is unsuitable for processors without the required AVX-512 instructions.
-- The fixed sample sizes and 200 main repetitions were retained; the region displays use the
+  independently calculated statistics and check search identities. Use the frozen environment and
+  supplied numerical rules for result comparisons.
+- Supplementary OLS diagnostics use BLAS calculations, which the runners check before execution.
+  Use a BLAS build compatible with the host CPU. The original Intel servers used
+  `OPENBLAS_CORETYPE=SKYLAKEX`, which requires AVX-512 support.
+- The main simulation uses 200 repetitions at each sample size; the region displays use the
   preselected repetition 0 at n = 7000. Plotted coverage intervals are 95% Wilson intervals.
-- `data/raw/` and `results/real_data/*/local/` are ignored. Never add provider data, GGL prepared
-  assignment arrays or ACTG individual-level scatter arrays to the repository.
+- Keep provider data, GGL prepared assignments and ACTG individual-level plotting arrays in the
+  ignored `data/raw/` and `results/real_data/*/local/` directories.
 
 ## Data, citation and license
 
 [data/README.md](data/README.md) gives the provider terms and checksums for GGL (Yale ISPS D001),
-ACTG 175 (UCI, DOI 10.24432/C5ZG8F) and the Noy–Zhang writing study (OSF xd7qw). Provider data are not
-redistributed. Historical JTPA/RAND design diagnostics produced no reported numerical bounds and are
-not included in this repository.
+ACTG 175 (UCI, DOI 10.24432/C5ZG8F) and the Noy–Zhang writing study (OSF xd7qw).
+Obtain the original data from these providers using the instructions in that file.
 
 ```bibtex
 @article{li2026reach,
   title = {The Reach of Treatment Effects: Randomization Inference for Zero-Effect Regions},
   author = {Li, Pengyu and Zhang, Yao},
-  year = {2026}
+  year = {2026},
+  eprint = {2610.20759},
+  archivePrefix = {arXiv},
+  url = {https://arxiv.org/abs/2610.20759}
 }
 ```
 

@@ -1,11 +1,12 @@
 # Data
 
-The three real-data experiments use provider data that are **not** redistributed here. Put the files
-under `data/raw/` as below; the real-data runners read them from there (or from `--data-dir`).
-The redistributed files under `results/real_data/` contain aggregate summaries, stability results and
-display inputs; compact summaries omit the full evaluated p-value paths. Raw data and local arrays
-derived from individual observations are excluded by `.gitignore`, including the ACTG scatter inputs
-and GGL prepared assignments in `results/real_data/*/local/`.
+The three real-data experiments use files obtained from the providers listed below. Save them under
+`data/raw/` using the paths shown here; the real-data runners read them from there (or from
+`--data-dir`). Aggregate summaries, stability results and display inputs are available under
+`results/real_data/`.
+Raw data and arrays derived from individual observations are kept locally, with their paths listed
+in `.gitignore`. These include the ACTG scatter inputs and GGL prepared assignments in
+`results/real_data/*/local/`.
 
 ```text
 data/raw/
@@ -41,9 +42,9 @@ Follow each provider's terms of use. The analysed samples are built by `zeroreac
 - **Noy–Zhang.** The cleaning steps of the authors' code (`2 - clean.do`): finished and consenting
   participants, the six manual exclusions, both quality-check waves, and exclusion of participants
   whose earliest recorded grader-session start date precedes their task-survey start date. Both dates
-  are obtained by normalizing the corresponding `startdate` fields to calendar dates; the filter does
-  not compare task-completion timestamps. Grade eligibility also excludes retries, the test grader,
-  missing scores, and grader sessions dated after the grader's first task-survey date. Eligible scores
+  are obtained by normalizing the corresponding `startdate` fields to calendar dates. Grade eligibility
+  also excludes retries, the test grader, missing scores, and grader sessions dated after the grader's
+  first task-survey date. Eligible scores
   must be integers from 1 to 7. Grades are exact means of
   the eligible original grades. The analysed groups are the
   linear and convex incentive groups (352 participants for the grade of the second task, 353 for its time).
